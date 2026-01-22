@@ -240,17 +240,15 @@
             pointer-events: none;
         }
 
-        /* --- PDF WINDOW FIXES FOR MOBILE --- */
+        /* --- PDF WINDOW --- */
         .pdf-viewer-window {
             background: var(--engineering-slate);
             border-radius: var(--border-radius);
             padding: 10px;
             margin-top: 20px;
             box-shadow: 0 10px 30px -10px rgba(0,0,0,0.3);
-            display: flex; flex-direction: column; 
-            height: 500px;
+            display: flex; flex-direction: column; height: 500px;
         }
-        
         .window-header {
             display: flex; gap: 6px; padding-bottom: 10px; padding-left: 5px; flex-shrink: 0;
         }
@@ -259,23 +257,13 @@
         .dot:nth-child(3) { background: #27c93f; }
         
         .pdf-scroll-wrapper {
-            flex-grow: 1; 
-            width: 100%; 
-            height: 100%;
-            overflow-y: auto; 
-            /* This property is crucial for iOS scrolling */
-            -webkit-overflow-scrolling: touch; 
+            flex-grow: 1; width: 100%; height: 100%;
+            overflow-y: auto; -webkit-overflow-scrolling: touch;
             background: #fff;
-            position: relative;
         }
-        
         .pdf-frame {
-            width: 100%; 
-            height: 100%; 
-            border: none; 
-            background: #fff;
-            border-radius: 2px; 
-            display: block;
+            width: 100%; height: 100%; border: none; background: #fff;
+            border-radius: 2px; display: block;
         }
 
         .disclaimer-box {
@@ -301,7 +289,9 @@
             background: var(--primary-red); color: white;
             border: none; width: 100%; padding: 15px;
             font-family: 'Teko', sans-serif; font-size: 1.5rem; letter-spacing: 1px;
-            margin-top: 2rem; border-radius: var(--border-radius);
+            margin-top: 2.5rem; /* Increased margin to separate from checkbox */
+            margin-bottom: 1rem;
+            border-radius: var(--border-radius);
             cursor: pointer; transition: 0.3s;
         }
         .submit-btn:disabled { background: var(--text-muted); cursor: not-allowed; }
@@ -342,9 +332,9 @@
             .form-group.full-width { grid-column: span 1; }
             .article-title { font-size: 2.5rem; }
             .mobile-pdf-link { display: block; }
-            
-            /* Mobile PDF Height Fix */
-            .pdf-viewer-window { height: 60vh; }
+            /* Fix mobile layout spacing */
+            .form-container { padding-bottom: 4rem; } 
+            .submit-btn { margin-top: 3rem; }
         }
     </style>
 </head>
@@ -386,7 +376,7 @@
             <div class="success-icon"><i class="fas fa-check-circle"></i></div>
             <h2 style="font-size: 2.5rem; margin-bottom: 10px; color: var(--text-main);">Registration Submitted</h2>
             <p style="color: var(--text-muted); font-size: 1.1rem; max-width: 500px; margin: 0 auto 2rem;">
-                Thank you! We have received your details. A confirmation email will be sent to you shortly.
+                Thank you! We have received your details
             </p>
             <button onclick="window.location.href='https://sawaed-om.org/'" class="nav-btn hover-trigger" style="margin: 0 auto; background: var(--text-main); color: var(--bg-body);">
                 RETURN HOME
@@ -403,7 +393,11 @@
 
                 <div class="form-group">
                     <label class="form-label">Personal Email</label>
-                    <input type="email" id="email" class="form-input hover-trigger" required placeholder="name@example.com">
+                    <div class="search-dropdown-container">
+                        <input type="email" id="email" class="form-input hover-trigger" placeholder="name@example.com" onkeyup="handleEmailInput(this)" autocomplete="off" required>
+                        <div id="emailList" class="dropdown-options-list">
+                            </div>
+                    </div>
                 </div>
 
                 <div class="form-group">
@@ -574,6 +568,43 @@
             }
         }
 
+        /* --- LOGIC: SMART EMAIL SUGGESTIONS --- */
+        function handleEmailInput(input) {
+            const list = document.getElementById('emailList');
+            const val = input.value;
+            const domains = ["gmail.com", "outlook.com", "hotmail.com", "icloud.com", "yahoo.com"];
+            
+            // Only show suggestions if user typed '@'
+            if (val.includes('@')) {
+                const parts = val.split('@');
+                const username = parts[0];
+                const domainPart = parts[1]; // what they typed after @
+
+                list.innerHTML = '';
+                
+                // Filter domains based on what user typed after @
+                const filteredDomains = domains.filter(d => d.startsWith(domainPart));
+                
+                if (filteredDomains.length > 0) {
+                    filteredDomains.forEach(domain => {
+                        const div = document.createElement('div');
+                        div.className = 'custom-option';
+                        div.textContent = username + '@' + domain;
+                        div.onclick = () => {
+                            input.value = username + '@' + domain;
+                            list.classList.remove('show');
+                        };
+                        list.appendChild(div);
+                    });
+                    list.classList.add('show');
+                } else {
+                    list.classList.remove('show');
+                }
+            } else {
+                list.classList.remove('show');
+            }
+        }
+
         function showDropdown(listId) {
             document.getElementById(listId).classList.add('show');
         }
@@ -591,7 +622,7 @@
             gsap.from(".gsap-hero", { y: 40, opacity: 0, duration: 1, stagger: 0.15, ease: "power3.out" });
         });
 
-        /* --- FORM SUBMISSION (FIXED LOGIC) --- */
+        /* --- FORM SUBMISSION (WITH SHEETS) --- */
         function submitForm(e) {
             e.preventDefault();
             
@@ -625,11 +656,10 @@
             // *** Your Google Script Web App URL ***
             const scriptURL = 'https://script.google.com/macros/s/AKfycbxzL6Nwo2QUd8of-ko_OATX077BS9sQtY53NKU589O2mwphh7RUaHVnXs3nea8Ki_TI/exec';
 
-            // REMOVED THE IF/ELSE TEST CHECK THAT WAS BLOCKING SUBMISSION
             fetch(scriptURL, {
                 method: 'POST',
                 body: JSON.stringify(formData),
-                mode: 'no-cors', // Standard for Google Forms
+                mode: 'no-cors', 
                 headers: { 'Content-Type': 'text/plain' }
             })
             .then(response => {
