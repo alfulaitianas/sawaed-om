@@ -45,6 +45,7 @@
             --canvas-line: rgba(255, 255, 255, 0.08);
         }
 
+        /* BLIND MODE FIXES */
         html.blind-mode {
             --primary-red: #000000 !important;
             --bg-body: #ffffff !important;
@@ -67,6 +68,18 @@
             --cursor-color: #ffffff !important;
         }
 
+        html[data-theme="dark"].blind-mode .submit-btn,
+        html[data-theme="dark"].blind-mode .nav-link.join-btn,
+        html[data-theme="dark"].blind-mode .nav-btn.active {
+            color: #000000 !important;
+            font-weight: 800;
+        }
+        
+        html.blind-mode .checkbox-wrapper {
+            background: transparent !important;
+            border: 2px solid var(--text-main) !important;
+        }
+
         html, body {
             margin: 0; padding: 0;
             font-family: 'Inter', sans-serif;
@@ -85,12 +98,14 @@
         h1, h2, h3, h4 { font-family: 'Teko', sans-serif; text-transform: uppercase; letter-spacing: 0.5px; }
         .tech-font { font-family: 'Roboto Mono', monospace; letter-spacing: -0.5px; }
         
-        /* --- CURSOR --- */
+        /* --- CUSTOM CURSOR (SQUARE) --- */
         @media (hover: hover) {
-            * { cursor: none !important; }
-            input, select, textarea { cursor: text !important; }
-            a, button, .btn, .hover-trigger, .checkbox-container, .checkbox-container label, .checkbox-container input { cursor: pointer !important; }
+            * { cursor: none !important; } /* Hide default cursor */
             
+            /* Allow text selection cursor on inputs */
+            input, select, textarea { cursor: text !important; }
+            a, button, .btn, .hover-trigger, .checkbox-container, .checkbox-container label, .checkbox-container input, .custom-option { cursor: pointer !important; }
+
             #cursor-dot {
                 position: fixed; top: 0; left: 0; width: 8px; height: 8px; 
                 background-color: var(--cursor-color);
@@ -116,6 +131,7 @@
             transition: all 0.3s ease;
         }
         html[data-theme="dark"] nav { background: rgba(11, 17, 32, 0.8); }
+        html.blind-mode nav { background: var(--bg-body); border-bottom: 2px solid var(--card-border); }
         
         .logo { display: flex; align-items: center; gap: 12px; font-weight: 600; font-size: 1.5rem; font-family: 'Teko', sans-serif; letter-spacing: 1px; cursor: pointer; }
         .logo img { height: 40px; width: auto; transition: filter 0.3s; }
@@ -129,6 +145,7 @@
             text-transform: uppercase; transition: color 0.2s;
         }
         .nav-link:hover { color: var(--primary-red); }
+        
         .nav-link.join-btn {
             background: var(--primary-red); color: #fff;
             padding: 6px 16px; border-radius: var(--border-radius);
@@ -146,7 +163,7 @@
         }
         .nav-btn.active { background: var(--primary-red); color: white; border-color: var(--primary-red); }
 
-        /* --- FORM SPECIFIC STYLES --- */
+        /* --- FORM STYLES --- */
         .article-hero { padding: 8rem 5% 3rem; text-align: center; }
         .article-title {
             font-size: clamp(2.5rem, 6vw, 4.5rem); line-height: 0.95; color: var(--text-main);
@@ -159,7 +176,7 @@
 
         .form-container {
             max-width: 700px; margin: 0 auto; padding: 0 5% 6rem;
-            min-height: 50vh; /* Ensure space for transition */
+            min-height: 50vh;
         }
 
         .form-grid {
@@ -190,6 +207,34 @@
             box-shadow: 0 0 0 3px rgba(154, 31, 31, 0.1);
         }
 
+        /* --- CUSTOM SEARCHABLE DROPDOWN --- */
+        .search-dropdown-container {
+            position: relative;
+        }
+        .dropdown-options-list {
+            position: absolute;
+            top: 100%; left: 0; width: 100%;
+            max-height: 250px;
+            overflow-y: auto;
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-top: none;
+            border-radius: 0 0 4px 4px;
+            z-index: 99;
+            display: none;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+        }
+        .dropdown-options-list.show { display: block; }
+        .custom-option {
+            padding: 10px 15px;
+            cursor: pointer;
+            border-bottom: 1px solid var(--grid-color);
+            transition: background 0.2s;
+            color: var(--text-main);
+        }
+        .custom-option:hover { background: rgba(154, 31, 31, 0.05); color: var(--primary-red); }
+        .custom-option.hidden { display: none; }
+
         .select-wrapper { position: relative; }
         .select-wrapper::after {
             content: '▼'; font-size: 0.7rem; color: var(--text-muted);
@@ -197,7 +242,7 @@
             pointer-events: none;
         }
 
-        /* PDF Window Style */
+        /* --- PDF WINDOW --- */
         .pdf-viewer-window {
             background: var(--engineering-slate);
             border-radius: var(--border-radius);
@@ -213,9 +258,14 @@
         .dot:nth-child(2) { background: #ffbd2e; }
         .dot:nth-child(3) { background: #27c93f; }
         
+        .pdf-scroll-wrapper {
+            flex-grow: 1; width: 100%; height: 100%;
+            overflow-y: auto; -webkit-overflow-scrolling: touch;
+            background: #fff;
+        }
         .pdf-frame {
             width: 100%; height: 100%; border: none; background: #fff;
-            border-radius: 2px; flex-grow: 1;
+            border-radius: 2px; display: block;
         }
 
         .disclaimer-box {
@@ -224,11 +274,11 @@
         }
         .disclaimer-text { font-size: 0.9rem; color: var(--text-muted); line-height: 1.5; }
 
-        /* Custom Checkbox */
         .checkbox-wrapper {
             display: flex; align-items: flex-start; gap: 12px; margin-top: 25px;
             padding: 15px; background: rgba(154, 31, 31, 0.05);
             border-radius: var(--border-radius); border: 1px solid rgba(154, 31, 31, 0.2);
+            transition: 0.3s;
         }
         .checkbox-wrapper input[type="checkbox"] {
             width: 20px; height: 20px; flex-shrink: 0; margin-top: 2px; accent-color: var(--primary-red); cursor: pointer;
@@ -247,7 +297,6 @@
         .submit-btn:disabled { background: var(--text-muted); cursor: not-allowed; }
         .submit-btn:hover:not(:disabled) { background: #b92525; transform: translateY(-2px); }
 
-        /* Success Message State */
         .success-state {
             display: none; text-align: center; padding: 4rem 2rem;
             background: var(--card-bg); border: 1px solid var(--card-border);
@@ -255,6 +304,13 @@
         }
         .success-icon {
             font-size: 4rem; color: var(--success-green); margin-bottom: 1.5rem;
+        }
+
+        .mobile-pdf-link {
+            display: none; text-align: center; margin-top: 10px;
+        }
+        .mobile-pdf-link a {
+            color: var(--text-main); font-size: 0.8rem; text-decoration: underline;
         }
 
         footer { 
@@ -275,6 +331,7 @@
             .form-grid { grid-template-columns: 1fr; }
             .form-group.full-width { grid-column: span 1; }
             .article-title { font-size: 2.5rem; }
+            .mobile-pdf-link { display: block; }
         }
     </style>
 </head>
@@ -284,13 +341,13 @@
     <canvas id="engineering-canvas"></canvas>
 
     <nav>
-        <div class="logo hover-trigger magnetic" onclick="window.location.href='index.html'">
+        <div class="logo hover-trigger magnetic" onclick="window.location.href='https://sawaed-om.org/'">
             <img src="logo.png" alt="Sawaed Logo">
             <span></span>
         </div>
         <div class="nav-menu">
-            <a href="index.html" class="nav-link hover-trigger">Home</a>
-            <a href="#" class="nav-link join-btn hover-trigger magnetic">Join Us</a>
+            <a href="https://sawaed-om.org/" class="nav-link hover-trigger">Home</a>
+            <a href="https://sawaed-om.org/join-us" class="nav-link join-btn hover-trigger magnetic">Join Us</a>
         </div>
         <div class="nav-controls">
             <button class="nav-btn hover-trigger magnetic" onclick="toggleTheme()" id="themeBtn">
@@ -316,9 +373,9 @@
             <div class="success-icon"><i class="fas fa-check-circle"></i></div>
             <h2 style="font-size: 2.5rem; margin-bottom: 10px; color: var(--text-main);">Registration Submitted</h2>
             <p style="color: var(--text-muted); font-size: 1.1rem; max-width: 500px; margin: 0 auto 2rem;">
-                Thank you! We have received your details. A confirmation email will be sent to you shortly.
+                Thank you! We have received your details
             </p>
-            <button onclick="window.location.href='index.html'" class="nav-btn hover-trigger" style="margin: 0 auto; background: var(--text-main); color: var(--bg-body);">
+            <button onclick="window.location.href='https://sawaed-om.org/'" class="nav-btn hover-trigger" style="margin: 0 auto; background: var(--text-main); color: var(--bg-body);">
                 RETURN HOME
             </button>
         </div>
@@ -328,272 +385,41 @@
             <div class="form-grid">
                 <div class="form-group full-width">
                     <label class="form-label">Full Name</label>
-                    <input type="text" class="form-input hover-trigger" required placeholder="Enter your full name">
+                    <input type="text" id="fullName" class="form-input hover-trigger" required placeholder="Enter your full name">
                 </div>
 
                 <div class="form-group">
                     <label class="form-label">Personal Email</label>
-                    <input type="email" class="form-input hover-trigger" required placeholder="name@example.com">
+                    <input type="email" id="email" class="form-input hover-trigger" required placeholder="name@example.com">
                 </div>
 
                 <div class="form-group">
                     <label class="form-label">WhatsApp Number</label>
-                    <input type="tel" class="form-input hover-trigger" required placeholder="+44 7123 456789">
+                    <input type="tel" id="phone" class="form-input hover-trigger" required placeholder="+44 7123 456789">
                 </div>
 
                 <div class="form-group">
                     <label class="form-label">City in UK</label>
-                    <input class="form-input hover-trigger" list="cityData" placeholder="Search city..." required>
-                    <datalist id="cityData">
-                        <option value="Aberdeen">
-                        <option value="Armagh">
-                        <option value="Bangor (Northern Ireland)">
-                        <option value="Bangor (Wales)">
-                        <option value="Bath">
-                        <option value="Belfast">
-                        <option value="Birmingham">
-                        <option value="Bradford">
-                        <option value="Brighton & Hove">
-                        <option value="Bristol">
-                        <option value="Cambridge">
-                        <option value="Canterbury">
-                        <option value="Cardiff">
-                        <option value="Carlisle">
-                        <option value="Chelmsford">
-                        <option value="Chester">
-                        <option value="Chichester">
-                        <option value="City of Gibraltar">
-                        <option value="Colchester">
-                        <option value="Coventry">
-                        <option value="Derby">
-                        <option value="Doncaster">
-                        <option value="Douglas (Isle of Man)">
-                        <option value="Dundee">
-                        <option value="Dunfermline">
-                        <option value="Durham">
-                        <option value="Edinburgh">
-                        <option value="Ely">
-                        <option value="Exeter">
-                        <option value="Glasgow">
-                        <option value="Gloucester">
-                        <option value="Hamilton (Bermuda)">
-                        <option value="Hereford">
-                        <option value="Inverness">
-                        <option value="Jamestown (Saint Helena)">
-                        <option value="Kingston-upon-Hull">
-                        <option value="Lancaster">
-                        <option value="Leeds">
-                        <option value="Leicester">
-                        <option value="Lichfield">
-                        <option value="Lincoln">
-                        <option value="Lisburn">
-                        <option value="Liverpool">
-                        <option value="London">
-                        <option value="Londonderry">
-                        <option value="Manchester">
-                        <option value="Milton Keynes">
-                        <option value="Newcastle-upon-Tyne">
-                        <option value="Newport">
-                        <option value="Newry">
-                        <option value="Norwich">
-                        <option value="Nottingham">
-                        <option value="Oxford">
-                        <option value="Perth">
-                        <option value="Peterborough">
-                        <option value="Plymouth">
-                        <option value="Portsmouth">
-                        <option value="Preston">
-                        <option value="Ripon">
-                        <option value="Salford">
-                        <option value="Salisbury">
-                        <option value="Sheffield">
-                        <option value="Southampton">
-                        <option value="Southend-on-Sea">
-                        <option value="St Albans">
-                        <option value="St Asaph">
-                        <option value="St Davids">
-                        <option value="Stanley (Falkland Islands)">
-                        <option value="Stirling">
-                        <option value="Stoke on Trent">
-                        <option value="Sunderland">
-                        <option value="Swansea">
-                        <option value="Truro">
-                        <option value="Wakefield">
-                        <option value="Wells">
-                        <option value="Westminster">
-                        <option value="Winchester">
-                        <option value="Wolverhampton">
-                        <option value="Worcester">
-                        <option value="Wrexham">
-                        <option value="York">
-                    </datalist>
+                    <div class="search-dropdown-container">
+                        <input type="text" class="form-input hover-trigger" id="cityInput" placeholder="Search city..." onkeyup="filterDropdown('cityInput', 'cityList')" onfocus="showDropdown('cityList')" autocomplete="off" required>
+                        <div id="cityList" class="dropdown-options-list">
+                            </div>
+                    </div>
                 </div>
 
                 <div class="form-group">
                     <label class="form-label">University</label>
-                    <input class="form-input hover-trigger" list="uniData" placeholder="Search university..." required>
-                    <datalist id="uniData">
-                        <option value="Abertay University">
-                        <option value="Aberystwyth University">
-                        <option value="Anglia Ruskin University">
-                        <option value="Arts University Bournemouth">
-                        <option value="Aston University">
-                        <option value="Bangor University">
-                        <option value="Bath Spa University">
-                        <option value="Birkbeck, University of London">
-                        <option value="Birmingham City University">
-                        <option value="Birmingham Newman University">
-                        <option value="Bishop Grosseteste University">
-                        <option value="Bournemouth University">
-                        <option value="BPP University">
-                        <option value="Brunel University London">
-                        <option value="Buckinghamshire New University">
-                        <option value="Canterbury Christ Church University">
-                        <option value="Cardiff Metropolitan University">
-                        <option value="Cardiff University">
-                        <option value="City, University of London">
-                        <option value="Coventry University">
-                        <option value="Cranfield University">
-                        <option value="De Montfort University">
-                        <option value="Durham University">
-                        <option value="Edge Hill University">
-                        <option value="Edinburgh Napier University">
-                        <option value="Falmouth University">
-                        <option value="Glasgow Caledonian University">
-                        <option value="Goldsmiths, University of London">
-                        <option value="Guildhall School of Music and Drama">
-                        <option value="Harper Adams University">
-                        <option value="Hartpury University">
-                        <option value="Heriot-Watt University">
-                        <option value="Imperial College London">
-                        <option value="Keele University">
-                        <option value="King's College London">
-                        <option value="Kingston University">
-                        <option value="Lancaster University">
-                        <option value="Leeds Arts University">
-                        <option value="Leeds Beckett University">
-                        <option value="Leeds Conservatoire">
-                        <option value="Leeds Trinity University">
-                        <option value="Liverpool Hope University">
-                        <option value="Liverpool John Moores University">
-                        <option value="London Business School">
-                        <option value="London Metropolitan University">
-                        <option value="London School of Economics and Political Science (LSE)">
-                        <option value="London School of Hygiene and Tropical Medicine">
-                        <option value="London South Bank University">
-                        <option value="Loughborough University">
-                        <option value="Manchester Metropolitan University">
-                        <option value="Middlesex University">
-                        <option value="Newcastle University">
-                        <option value="Northumbria University">
-                        <option value="Norwich University of the Arts">
-                        <option value="Nottingham Trent University">
-                        <option value="Oxford Brookes University">
-                        <option value="Plymouth Marjon University">
-                        <option value="Queen Margaret University">
-                        <option value="Queen Mary University of London">
-                        <option value="Queen's University Belfast">
-                        <option value="Ravensbourne University London">
-                        <option value="Regent's University London">
-                        <option value="Richmond, The American International University in London">
-                        <option value="Robert Gordon University">
-                        <option value="Rose Bruford College">
-                        <option value="Royal Academy of Music">
-                        <option value="Royal Agricultural University">
-                        <option value="Royal Central School of Speech and Drama">
-                        <option value="Royal College of Art">
-                        <option value="Royal College of Music">
-                        <option value="Royal Conservatoire of Scotland">
-                        <option value="Royal Holloway, University of London">
-                        <option value="Royal Northern College of Music">
-                        <option value="Royal Veterinary College">
-                        <option value="Sheffield Hallam University">
-                        <option value="SOAS University of London">
-                        <option value="Solent University">
-                        <option value="St George's, University of London">
-                        <option value="St Mary's University, Twickenham">
-                        <option value="Staffordshire University">
-                        <option value="Swansea University">
-                        <option value="Teesside University">
-                        <option value="The Courtauld Institute of Art">
-                        <option value="The Open University">
-                        <option value="Trinity Laban Conservatoire of Music and Dance">
-                        <option value="Ulster University">
-                        <option value="University College Birmingham">
-                        <option value="University College London (UCL)">
-                        <option value="University for the Creative Arts">
-                        <option value="University of Aberdeen">
-                        <option value="University of Bath">
-                        <option value="University of Bedfordshire">
-                        <option value="University of Birmingham">
-                        <option value="University of Bolton">
-                        <option value="University of Bradford">
-                        <option value="University of Brighton">
-                        <option value="University of Bristol">
-                        <option value="University of Buckingham">
-                        <option value="University of Cambridge">
-                        <option value="University of Central Lancashire">
-                        <option value="University of Chester">
-                        <option value="University of Chichester">
-                        <option value="University of Cumbria">
-                        <option value="University of Derby">
-                        <option value="University of Dundee">
-                        <option value="University of East Anglia (UEA)">
-                        <option value="University of East London">
-                        <option value="University of Edinburgh">
-                        <option value="University of Essex">
-                        <option value="University of Exeter">
-                        <option value="University of Glasgow">
-                        <option value="University of Gloucestershire">
-                        <option value="University of Greenwich">
-                        <option value="University of Hertfordshire">
-                        <option value="University of Huddersfield">
-                        <option value="University of Hull">
-                        <option value="University of Kent">
-                        <option value="University of Leeds">
-                        <option value="University of Leicester">
-                        <option value="University of Lincoln">
-                        <option value="University of Liverpool">
-                        <option value="University of Manchester">
-                        <option value="University of Northampton">
-                        <option value="University of Nottingham">
-                        <option value="University of Oxford">
-                        <option value="University of Plymouth">
-                        <option value="University of Portsmouth">
-                        <option value="University of Reading">
-                        <option value="University of Roehampton">
-                        <option value="University of Salford">
-                        <option value="University of Sheffield">
-                        <option value="University of South Wales">
-                        <option value="University of Southampton">
-                        <option value="University of St Andrews">
-                        <option value="University of Stirling">
-                        <option value="University of Strathclyde">
-                        <option value="University of Suffolk">
-                        <option value="University of Sunderland">
-                        <option value="University of Surrey">
-                        <option value="University of Sussex">
-                        <option value="University of the Arts London">
-                        <option value="University of the Highlands and Islands">
-                        <option value="University of the West of England (UWE Bristol)">
-                        <option value="University of the West of Scotland">
-                        <option value="University of Wales Trinity Saint David">
-                        <option value="University of Warwick">
-                        <option value="University of West London">
-                        <option value="University of Westminster">
-                        <option value="University of Winchester">
-                        <option value="University of Wolverhampton">
-                        <option value="University of Worcester">
-                        <option value="University of York">
-                        <option value="Wrexham University">
-                        <option value="York St John University">
-                    </datalist>
+                    <div class="search-dropdown-container">
+                        <input type="text" class="form-input hover-trigger" id="uniInput" placeholder="Search university..." onkeyup="filterDropdown('uniInput', 'uniList')" onfocus="showDropdown('uniList')" autocomplete="off" required>
+                        <div id="uniList" class="dropdown-options-list">
+                            </div>
+                    </div>
                 </div>
 
                 <div class="form-group">
                     <label class="form-label">Degree Type</label>
                     <div class="select-wrapper">
-                        <select class="form-select hover-trigger" required>
+                        <select id="degree" class="form-select hover-trigger" required>
                             <option value="" disabled selected>Select Degree</option>
                             <option value="B.Eng">B.Eng (Bachelor of Engineering)</option>
                             <option value="B.Sc">B.Sc (Bachelor of Science)</option>
@@ -608,7 +434,7 @@
                 <div class="form-group">
                     <label class="form-label">Academic Year</label>
                     <div class="select-wrapper">
-                        <select class="form-select hover-trigger" required>
+                        <select id="year" class="form-select hover-trigger" required>
                             <option value="" disabled selected>Select Year</option>
                             <option value="Foundation">Foundation Year</option>
                             <option value="Year 1">Year 1</option>
@@ -623,7 +449,7 @@
 
                 <div class="form-group full-width">
                     <label class="form-label">Engineering Discipline</label>
-                    <input type="text" class="form-input hover-trigger" required placeholder="e.g. Mechanical, Chemical, Civil...">
+                    <input type="text" id="discipline" class="form-input hover-trigger" required placeholder="e.g. Mechanical, Chemical, Civil...">
                 </div>
             </div>
 
@@ -637,9 +463,14 @@
                     <div class="window-header">
                         <div class="dot"></div><div class="dot"></div><div class="dot"></div>
                     </div>
-                    <iframe src="SAWAED - Regulations.pdf" class="pdf-frame" title="Sawaed Regulations">
-                        <p>Your browser does not support PDF iframes. <a href="SAWAED - Regulations.pdf">Download the Regulations PDF</a>.</p>
-                    </iframe>
+                    <div class="pdf-scroll-wrapper">
+                        <iframe src="SAWAED - Regulations.pdf" class="pdf-frame" title="Sawaed Regulations">
+                        </iframe>
+                    </div>
+                </div>
+
+                <div class="mobile-pdf-link">
+                    <a href="SAWAED - Regulations.pdf" target="_blank"><i class="fas fa-external-link-alt"></i> Tap here to open PDF in new tab</a>
                 </div>
 
                 <div class="checkbox-wrapper hover-trigger">
@@ -667,49 +498,152 @@
     </footer>
 
     <script>
-        /* --- FORM SUBMISSION --- */
+        /* --- DATA: FULL A-Z LISTS --- */
+        const cities = [
+            "Aberdeen", "Armagh", "Bangor (Northern Ireland)", "Bangor (Wales)", "Bath", "Belfast", "Birmingham", "Bradford", "Brighton & Hove", "Bristol", 
+            "Cambridge", "Canterbury", "Cardiff", "Carlisle", "Chelmsford", "Chester", "Chichester", "City of Gibraltar", "Colchester", "Coventry", 
+            "Derby", "Doncaster", "Douglas (Isle of Man)", "Dundee", "Dunfermline", "Durham", "Edinburgh", "Ely", "Exeter", "Glasgow", 
+            "Gloucester", "Hamilton (Bermuda)", "Hereford", "Inverness", "Jamestown (Saint Helena)", "Kingston-upon-Hull", "Lancaster", "Leeds", "Leicester", "Lichfield", 
+            "Lincoln", "Lisburn", "Liverpool", "London", "Londonderry", "Manchester", "Milton Keynes", "Newcastle-upon-Tyne", "Newport", "Newry", 
+            "Norwich", "Nottingham", "Oxford", "Perth", "Peterborough", "Plymouth", "Portsmouth", "Preston", "Ripon", "Salford", 
+            "Salisbury", "Sheffield", "Southampton", "Southend-on-Sea", "St Albans", "St Asaph", "St Davids", "Stanley (Falkland Islands)", "Stirling", "Stoke on Trent", 
+            "Sunderland", "Swansea", "Truro", "Wakefield", "Wells", "Westminster", "Winchester", "Wolverhampton", "Worcester", "Wrexham", "York"
+        ];
+
+        const universities = [
+            "Abertay University", "Aberystwyth University", "Anglia Ruskin University", "Arts University Bournemouth", "Aston University", "Bangor University", "Bath Spa University", "Birkbeck, University of London", "Birmingham City University", "Birmingham Newman University", 
+            "Bishop Grosseteste University", "Bournemouth University", "BPP University", "Brunel University London", "Buckinghamshire New University", "Canterbury Christ Church University", "Cardiff Metropolitan University", "Cardiff University", "City, University of London", "Coventry University", 
+            "Cranfield University", "De Montfort University", "Durham University", "Edge Hill University", "Edinburgh Napier University", "Falmouth University", "Glasgow Caledonian University", "Goldsmiths, University of London", "Guildhall School of Music and Drama", "Harper Adams University", 
+            "Hartpury University", "Heriot-Watt University", "Imperial College London", "Keele University", "King's College London", "Kingston University", "Lancaster University", "Leeds Arts University", "Leeds Beckett University", "Leeds Conservatoire", 
+            "Leeds Trinity University", "Liverpool Hope University", "Liverpool John Moores University", "London Business School", "London Metropolitan University", "London School of Economics and Political Science (LSE)", "London School of Hygiene and Tropical Medicine", "London South Bank University", "Loughborough University", "Manchester Metropolitan University", 
+            "Middlesex University", "Newcastle University", "Northumbria University", "Norwich University of the Arts", "Nottingham Trent University", "Oxford Brookes University", "Plymouth Marjon University", "Queen Margaret University", "Queen Mary University of London", "Queen's University Belfast", 
+            "Ravensbourne University London", "Regent's University London", "Richmond, The American International University in London", "Robert Gordon University", "Rose Bruford College", "Royal Academy of Music", "Royal Agricultural University", "Royal Central School of Speech and Drama", "Royal College of Art", "Royal College of Music", 
+            "Royal Conservatoire of Scotland", "Royal Holloway, University of London", "Royal Northern College of Music", "Royal Veterinary College", "Sheffield Hallam University", "SOAS University of London", "Solent University", "St George's, University of London", "St Mary's University, Twickenham", 
+            "Staffordshire University", "Swansea University", "Teesside University", "The Courtauld Institute of Art", "The Open University", "Trinity Laban Conservatoire of Music and Dance", "Ulster University", "University College Birmingham", "University College London (UCL)", "University for the Creative Arts", 
+            "University of Aberdeen", "University of Bath", "University of Bedfordshire", "University of Birmingham", "University of Bolton", "University of Bradford", "University of Brighton", "University of Bristol", "University of Buckingham", "University of Cambridge", 
+            "University of Central Lancashire", "University of Chester", "University of Chichester", "University of Cumbria", "University of Derby", "University of Dundee", "University of East Anglia (UEA)", "University of East London", "University of Edinburgh", "University of Essex", 
+            "University of Exeter", "University of Glasgow", "University of Gloucestershire", "University of Greenwich", "University of Hertfordshire", "University of Huddersfield", "University of Hull", "University of Kent", "University of Leeds", "University of Leicester", 
+            "University of Lincoln", "University of Liverpool", "University of Manchester", "University of Northampton", "University of Nottingham", "University of Oxford", "University of Plymouth", "University of Portsmouth", "University of Reading", "University of Roehampton", 
+            "University of Salford", "University of Sheffield", "University of South Wales", "University of Southampton", "University of St Andrews", "University of Stirling", "University of Strathclyde", "University of Suffolk", "University of Sunderland", "University of Surrey", 
+            "University of Sussex", "University of the Arts London", "University of the Highlands and Islands", "University of the West of England (UWE Bristol)", "University of the West of Scotland", "University of Wales Trinity Saint David", "University of Warwick", "University of West London", "University of Westminster", "University of Winchester", 
+            "University of Wolverhampton", "University of Worcester", "University of York", "Wrexham University", "York St John University"
+        ];
+
+        /* --- LOGIC: SEARCH DROPDOWNS --- */
+        function populateDropdown(listId, data, inputId) {
+            const list = document.getElementById(listId);
+            const input = document.getElementById(inputId);
+            list.innerHTML = '';
+            data.forEach(item => {
+                const div = document.createElement('div');
+                div.className = 'custom-option';
+                div.textContent = item;
+                div.onclick = () => {
+                    input.value = item;
+                    list.classList.remove('show');
+                };
+                list.appendChild(div);
+            });
+        }
+
+        function filterDropdown(inputId, listId) {
+            const input = document.getElementById(inputId);
+            const filter = input.value.toUpperCase();
+            const list = document.getElementById(listId);
+            const options = list.getElementsByClassName('custom-option');
+            list.classList.add('show');
+            for (let i = 0; i < options.length; i++) {
+                const txtValue = options[i].textContent || options[i].innerText;
+                if (txtValue.toUpperCase().indexOf(filter) > -1) {
+                    options[i].classList.remove('hidden');
+                } else {
+                    options[i].classList.add('hidden');
+                }
+            }
+        }
+
+        function showDropdown(listId) {
+            document.getElementById(listId).classList.add('show');
+        }
+
+        document.addEventListener('click', function(e) {
+            if (!e.target.closest('.search-dropdown-container')) {
+                document.querySelectorAll('.dropdown-options-list').forEach(el => el.classList.remove('show'));
+            }
+        });
+
+        /* --- INITIALIZATION --- */
+        window.addEventListener('load', () => {
+            populateDropdown('cityList', cities, 'cityInput');
+            populateDropdown('uniList', universities, 'uniInput');
+            gsap.from(".gsap-hero", { y: 40, opacity: 0, duration: 1, stagger: 0.15, ease: "power3.out" });
+        });
+
+        /* --- FORM SUBMISSION (WITH SHEETS) --- */
         function submitForm(e) {
             e.preventDefault();
             
-            // Validate Checkbox manually as backup (browser handles required attribute usually)
+            // 1. Validate Checkbox
             const checkbox = document.getElementById('agreeRegulations');
             if(!checkbox.checked) {
                 alert("Please agree to the regulations to proceed.");
                 return;
             }
 
-            // Simulate "Processing" state
+            // 2. Set "Processing" State
             const btn = e.target.querySelector('button[type="submit"]');
             const originalText = btn.innerText;
             btn.innerText = "PROCESSING...";
             btn.disabled = true;
             btn.style.cursor = "wait";
 
-            // Simulate backend delay (1 second) then show success
-            setTimeout(() => {
+            // 3. Prepare Data for Google Sheets
+            // Using updated IDs to ensure correct data capture
+            const formData = {
+                fullName: document.getElementById('fullName').value,
+                email: document.getElementById('email').value,
+                phone: document.getElementById('phone').value,
+                city: document.getElementById('cityInput').value,
+                university: document.getElementById('uniInput').value,
+                degree: document.getElementById('degree').value, 
+                year: document.getElementById('year').value,   
+                discipline: document.getElementById('discipline').value
+            };
+
+            // 4. Send Data
+            // Your provided Google Script Web App URL
+            const scriptURL = 'https://script.google.com/macros/s/AKfycbxzL6Nwo2QUd8of-ko_OATX077BS9sQtY53NKU589O2mwphh7RUaHVnXs3nea8Ki_TI/exec';
+
+            fetch(scriptURL, {
+                method: 'POST',
+                body: JSON.stringify(formData),
+                mode: 'no-cors', // Standard for Google Forms
+                headers: { 'Content-Type': 'text/plain' }
+            })
+            .then(response => {
+                showSuccess();
+            })
+            .catch(error => {
+                console.error('Error!', error.message);
+                alert("Error submitting. Please check your internet connection.");
+                btn.innerText = originalText;
+                btn.disabled = false;
+                btn.style.cursor = "pointer";
+            });
+
+            function showSuccess() {
                 const form = document.getElementById('joinForm');
                 const successMsg = document.getElementById('successMessage');
 
-                // Animate form out
                 gsap.to(form, { duration: 0.5, opacity: 0, y: -20, display: 'none', ease: "power2.in" });
-                
-                // Animate success message in
                 gsap.set(successMsg, { display: 'block', opacity: 0, y: 30 });
                 gsap.to(successMsg, { duration: 0.8, opacity: 1, y: 0, delay: 0.5, ease: "power3.out" });
                 
-                // Scroll to top of form container smoothly
                 document.querySelector('.article-hero').scrollIntoView({ behavior: 'smooth' });
-
-            }, 1000);
-            
-            // Add your actual backend integration here
+            }
         }
 
-        /* --- ANIMATIONS & THEME --- */
-        window.addEventListener('load', () => {
-            gsap.from(".gsap-hero", { y: 40, opacity: 0, duration: 1, stagger: 0.15, ease: "power3.out" });
-        });
-
+        /* --- THEME & ANIMATIONS --- */
         const html = document.documentElement;
         function toggleTheme() {
             const current = html.getAttribute('data-theme');
@@ -749,20 +683,16 @@
             const styles = getComputedStyle(document.body);
             if(styles.getPropertyValue('--canvas-display').trim() === 'none') { requestAnimationFrame(animateCanvas); return; }
             const nodeColor = styles.getPropertyValue('--canvas-node').trim();
-            const lineColor = styles.getPropertyValue('--canvas-line').trim();
             nodes.forEach(node => {
                 node.x += node.vx; node.y += node.vy;
                 if(node.x<0||node.x>w) node.vx*=-1; if(node.y<0||node.y>h) node.vy*=-1;
                 ctx.fillStyle = nodeColor; ctx.fillRect(node.x-node.size/2, node.y-node.size/2, node.size, node.size);
-                if (mouse.x) {
-                    const dist = Math.sqrt((mouse.x-node.x)**2 + (mouse.y-node.y)**2);
-                    if (dist < 150) { ctx.beginPath(); ctx.strokeStyle = lineColor; ctx.lineWidth = 0.5; ctx.moveTo(node.x, node.y); ctx.lineTo(mouse.x, mouse.y); ctx.stroke(); }
-                }
             });
             requestAnimationFrame(animateCanvas);
         }
         window.addEventListener('mousemove', (e) => {
             mouse.x = e.clientX; mouse.y = e.clientY;
+            // UPDATE: Move the custom cursor with the mouse
             gsap.to(document.getElementById('cursor-dot'), { x: e.clientX, y: e.clientY, duration: 0.1 });
         });
         window.addEventListener('mouseleave', () => { mouse.x = null; mouse.y = null; });
