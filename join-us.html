@@ -101,8 +101,6 @@
         /* --- CUSTOM CURSOR (SQUARE) --- */
         @media (hover: hover) {
             * { cursor: none !important; } /* Hide default cursor */
-            
-            /* Allow text selection cursor on inputs */
             input, select, textarea { cursor: text !important; }
             a, button, .btn, .hover-trigger, .checkbox-container, .checkbox-container label, .checkbox-container input, .custom-option { cursor: pointer !important; }
 
@@ -242,15 +240,17 @@
             pointer-events: none;
         }
 
-        /* --- PDF WINDOW --- */
+        /* --- PDF WINDOW FIXES FOR MOBILE --- */
         .pdf-viewer-window {
             background: var(--engineering-slate);
             border-radius: var(--border-radius);
             padding: 10px;
             margin-top: 20px;
             box-shadow: 0 10px 30px -10px rgba(0,0,0,0.3);
-            display: flex; flex-direction: column; height: 500px;
+            display: flex; flex-direction: column; 
+            height: 500px;
         }
+        
         .window-header {
             display: flex; gap: 6px; padding-bottom: 10px; padding-left: 5px; flex-shrink: 0;
         }
@@ -259,13 +259,23 @@
         .dot:nth-child(3) { background: #27c93f; }
         
         .pdf-scroll-wrapper {
-            flex-grow: 1; width: 100%; height: 100%;
-            overflow-y: auto; -webkit-overflow-scrolling: touch;
+            flex-grow: 1; 
+            width: 100%; 
+            height: 100%;
+            overflow-y: auto; 
+            /* This property is crucial for iOS scrolling */
+            -webkit-overflow-scrolling: touch; 
             background: #fff;
+            position: relative;
         }
+        
         .pdf-frame {
-            width: 100%; height: 100%; border: none; background: #fff;
-            border-radius: 2px; display: block;
+            width: 100%; 
+            height: 100%; 
+            border: none; 
+            background: #fff;
+            border-radius: 2px; 
+            display: block;
         }
 
         .disclaimer-box {
@@ -332,6 +342,9 @@
             .form-group.full-width { grid-column: span 1; }
             .article-title { font-size: 2.5rem; }
             .mobile-pdf-link { display: block; }
+            
+            /* Mobile PDF Height Fix */
+            .pdf-viewer-window { height: 60vh; }
         }
     </style>
 </head>
@@ -373,7 +386,7 @@
             <div class="success-icon"><i class="fas fa-check-circle"></i></div>
             <h2 style="font-size: 2.5rem; margin-bottom: 10px; color: var(--text-main);">Registration Submitted</h2>
             <p style="color: var(--text-muted); font-size: 1.1rem; max-width: 500px; margin: 0 auto 2rem;">
-                Thank you! We have received your details
+                Thank you! We have received your details. A confirmation email will be sent to you shortly.
             </p>
             <button onclick="window.location.href='https://sawaed-om.org/'" class="nav-btn hover-trigger" style="margin: 0 auto; background: var(--text-main); color: var(--bg-body);">
                 RETURN HOME
@@ -464,8 +477,7 @@
                         <div class="dot"></div><div class="dot"></div><div class="dot"></div>
                     </div>
                     <div class="pdf-scroll-wrapper">
-                        <iframe src="SAWAED - Regulations.pdf" class="pdf-frame" title="Sawaed Regulations">
-                        </iframe>
+                        <embed src="SAWAED - Regulations.pdf" type="application/pdf" class="pdf-frame">
                     </div>
                 </div>
 
@@ -579,7 +591,7 @@
             gsap.from(".gsap-hero", { y: 40, opacity: 0, duration: 1, stagger: 0.15, ease: "power3.out" });
         });
 
-        /* --- FORM SUBMISSION (WITH SHEETS) --- */
+        /* --- FORM SUBMISSION (FIXED LOGIC) --- */
         function submitForm(e) {
             e.preventDefault();
             
@@ -598,7 +610,6 @@
             btn.style.cursor = "wait";
 
             // 3. Prepare Data for Google Sheets
-            // Using updated IDs to ensure correct data capture
             const formData = {
                 fullName: document.getElementById('fullName').value,
                 email: document.getElementById('email').value,
@@ -611,9 +622,10 @@
             };
 
             // 4. Send Data
-            // Your provided Google Script Web App URL
+            // *** Your Google Script Web App URL ***
             const scriptURL = 'https://script.google.com/macros/s/AKfycbxzL6Nwo2QUd8of-ko_OATX077BS9sQtY53NKU589O2mwphh7RUaHVnXs3nea8Ki_TI/exec';
 
+            // REMOVED THE IF/ELSE TEST CHECK THAT WAS BLOCKING SUBMISSION
             fetch(scriptURL, {
                 method: 'POST',
                 body: JSON.stringify(formData),
