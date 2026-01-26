@@ -1,0 +1,501 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light" dir="ltr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    
+    <title>Event Report | Sawaed Introduction</title>
+    <meta name="description" content="Report: Sawaed Introduction & Networking Session - Oct 26, 2025">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&family=Roboto+Mono:wght@400;500;700&family=Teko:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        /* --- 1. CSS VARIABLES (PRECISION THEME) --- */
+        :root {
+            --primary-red: #9A1F1F;       
+            --engineering-slate: #2c3e50; 
+            --tech-blue: #3498db;         
+            --safety-yellow: #f1c40f;     
+            --bg-body: #f4f6f8;           
+            --text-main: #0f172a;         
+            --text-muted: #64748b;
+            --card-bg: #ffffff;
+            --card-border: #cbd5e1;       
+            --border-width: 1px;          
+            --border-radius: 4px;         
+            --grid-color: rgba(44, 62, 80, 0.05);
+            --cursor-color: #9A1F1F;
+            --canvas-node: rgba(44, 62, 80, 0.6);
+            --canvas-line: rgba(44, 62, 80, 0.15);
+        }
+
+        html[data-theme="dark"] {
+            --bg-body: #0b1120;           
+            --text-main: #f1f5f9;
+            --text-muted: #94a3b8;
+            --card-bg: #1e293b;
+            --card-border: #334155;
+            --grid-color: rgba(255,255,255,0.03);
+            --cursor-color: #ffffff;
+            --canvas-node: rgba(255, 255, 255, 0.4);
+            --canvas-line: rgba(255, 255, 255, 0.08);
+        }
+
+        html.blind-mode {
+            --primary-red: #000000 !important;
+            --bg-body: #ffffff !important;
+            --text-main: #000000 !important;
+            --text-muted: #000000 !important;
+            --card-bg: #ffffff !important;
+            --card-border: #000000 !important;
+            --grid-color: transparent !important;
+            --canvas-display: none;
+            --cursor-color: #000000 !important;
+        }
+        
+        html[data-theme="dark"].blind-mode {
+            --primary-red: #ffffff !important;
+            --bg-body: #000000 !important;
+            --text-main: #ffffff !important;
+            --text-muted: #ffffff !important;
+            --card-bg: #000000 !important;
+            --card-border: #ffffff !important;
+            --cursor-color: #ffffff !important;
+        }
+
+        /* --- GLOBAL RESET --- */
+        html, body {
+            margin: 0; padding: 0;
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-body);
+            color: var(--text-main);
+            overflow-x: hidden;
+            width: 100%;
+            transition: background-color 0.5s ease, color 0.5s ease;
+            background-image: 
+                linear-gradient(var(--grid-color) 1px, transparent 1px),
+                linear-gradient(90deg, var(--grid-color) 1px, transparent 1px);
+            background-size: 30px 30px;
+        }
+        * { box-sizing: border-box; }
+
+        /* Typography */
+        h1, h2, h3, h4 { font-family: 'Teko', sans-serif; text-transform: uppercase; letter-spacing: 0.5px; }
+        .tech-font { font-family: 'Roboto Mono', monospace; letter-spacing: -0.5px; }
+        
+        /* --- CURSOR --- */
+        @media (hover: hover) {
+            /* GLOBAL CUSTOM CURSOR */
+            * { cursor: none !important; }
+            a, button, .btn, input, .hover-trigger, .accordion-header { cursor: none !important; }
+            
+            /* EXCEPTION: VIDEO PLAYER & CONTROLS */
+            /* This fixes the disappearing mouse issue in full screen */
+            video, iframe, .video-container, .video-container *, video::-webkit-media-controls { 
+                cursor: auto !important; 
+            }
+
+            #cursor-dot {
+                position: fixed; top: 0; left: 0; width: 8px; height: 8px; 
+                background-color: var(--cursor-color);
+                pointer-events: none; z-index: 999999;
+                transform: translate(-50%, -50%);
+                transition: opacity 0.2s;
+            }
+            body.hover-active #cursor-dot { opacity: 0.4; width: 12px; height: 12px; }
+            
+            /* Hide custom cursor dot when hovering video */
+            .video-container:hover ~ #cursor-dot { opacity: 0; }
+        }
+
+        /* --- BACKGROUND CANVAS --- */
+        #engineering-canvas {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            z-index: -2; pointer-events: none; display: var(--canvas-display, block);
+        }
+
+        /* --- NAVIGATION --- */
+        nav {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 1rem 5%; position: fixed; top: 0; width: 100%; z-index: 1000;
+            background: rgba(255,255,255,0.8); backdrop-filter: blur(10px);
+            border-bottom: 1px solid var(--card-border);
+            transition: all 0.3s ease;
+        }
+        html[data-theme="dark"] nav { background: rgba(11, 17, 32, 0.8); }
+        
+        .logo { display: flex; align-items: center; gap: 12px; font-weight: 600; font-size: 1.5rem; font-family: 'Teko', sans-serif; letter-spacing: 1px; cursor: pointer; }
+        .logo img { height: 40px; width: auto; transition: filter 0.3s; }
+        html[data-theme="dark"] .logo img { filter: none; }
+        html.blind-mode .logo img { filter: grayscale(100%) contrast(200%); }
+        html[data-theme="dark"].blind-mode .logo img { filter: grayscale(100%) contrast(200%); }
+
+        .nav-menu { display: flex; gap: 25px; align-items: center; }
+        .nav-link {
+            text-decoration: none; color: var(--text-main);
+            font-family: 'Roboto Mono', monospace; font-weight: 600; font-size: 0.8rem;
+            text-transform: uppercase; transition: color 0.2s; position: relative;
+        }
+        .nav-link:hover { color: var(--primary-red); }
+        
+        .nav-link.join-btn {
+            background: var(--primary-red); color: #fff;
+            padding: 6px 16px; border-radius: var(--border-radius);
+            border: 1px solid var(--primary-red);
+        }
+        .nav-link.join-btn:hover { background: transparent; color: var(--primary-red); }
+        html.blind-mode .nav-link.join-btn { background: #000; border-color: #000; }
+
+        .nav-controls { display: flex; gap: 8px; }
+        .nav-btn {
+            background: transparent; 
+            border: 1px solid var(--card-border); 
+            color: var(--text-main); padding: 8px 14px; 
+            border-radius: var(--border-radius); 
+            font-size: 0.75rem; font-weight: 600; cursor: pointer; 
+            display: flex; align-items: center; gap: 6px; font-family: 'Roboto Mono', monospace;
+            transition: 0.2s;
+        }
+        .nav-btn:hover { background: var(--text-main); color: var(--bg-body); border-color: var(--text-main); }
+        .nav-btn.active { background: var(--primary-red); color: white; border-color: var(--primary-red); }
+        html.blind-mode .nav-btn.active { background: #000; color: #fff; border-color: #000; }
+
+        /* --- ARTICLE STYLES --- */
+        .article-hero { padding: 8rem 5% 3rem; text-align: center; }
+        .article-meta {
+            font-family: 'Roboto Mono'; font-size: 0.8rem; color: var(--primary-red);
+            margin-bottom: 20px; text-transform: uppercase; letter-spacing: 1px;
+            display: flex; gap: 15px; justify-content: center; flex-wrap: wrap;
+        }
+        .article-meta span { display: flex; align-items: center; gap: 6px; }
+        .article-title {
+            font-size: clamp(2.5rem, 6vw, 4.5rem); line-height: 0.95; color: var(--text-main);
+            margin-bottom: 1.5rem; max-width: 1000px; margin-left: auto; margin-right: auto;
+        }
+        .article-subtitle {
+            font-family: 'Inter'; font-size: 1.2rem; color: var(--text-muted);
+            max-width: 700px; margin: 0 auto 3rem; font-weight: 300;
+        }
+
+        .article-container { max-width: 800px; margin: 0 auto; padding: 0 5% 6rem; }
+        .article-body { font-size: 1.05rem; line-height: 1.7; color: var(--text-muted); }
+        .article-body p { margin-bottom: 1.5rem; }
+        .article-body h3 { 
+            font-size: 1.8rem; margin: 3rem 0 1rem; color: var(--text-main);
+            border-left: 3px solid var(--primary-red); padding-left: 15px;
+        }
+        .article-body ul { margin-bottom: 2rem; padding-left: 20px; }
+        .article-body li { margin-bottom: 10px; position: relative; list-style: none; }
+        .article-body li::before { content: "›"; color: var(--primary-red); font-weight: bold; position: absolute; left: -20px; }
+
+        .highlight-box {
+            background: var(--card-bg); border: 1px solid var(--card-border);
+            padding: 2rem; margin: 2rem 0; border-radius: var(--border-radius);
+            position: relative; overflow: hidden;
+        }
+        .highlight-box::after {
+            content: ""; position: absolute; top: 0; left: 0; width: 4px; height: 100%; background: var(--engineering-slate);
+        }
+
+        /* --- VIDEO / RECORDING SECTION --- */
+        .video-container {
+            position: relative; padding-bottom: 56.25%; /* 16:9 Aspect Ratio */
+            height: 0; overflow: hidden; background: #000;
+            border: 1px solid var(--card-border); margin-top: 2rem;
+            cursor: auto !important; /* Force mouse visibility */
+        }
+        
+        /* Iframe for Google Drive */
+        .video-container iframe {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            border: 0; z-index: 1; display: none; /* Hidden until played */
+        }
+
+        /* Custom Cover Image (Matches video poster) */
+        .video-cover-img {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            object-fit: cover; z-index: 5;
+            transition: opacity 0.5s;
+        }
+        
+        /* Custom Center Play Button Overlay */
+        .play-overlay {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            display: flex; justify-content: center; align-items: center;
+            background: rgba(0,0,0,0.1); /* Subtle tint over cover image */
+            z-index: 10; cursor: pointer !important;
+            transition: all 0.3s;
+        }
+        .play-btn-circle {
+            width: 80px; height: 80px; border-radius: 50%;
+            background: rgba(154, 31, 31, 0.9); /* Brand Red */
+            display: flex; justify-content: center; align-items: center;
+            box-shadow: 0 0 20px rgba(0,0,0,0.3);
+            transition: transform 0.2s;
+        }
+        .play-btn-circle i { color: white; font-size: 30px; margin-left: 5px; }
+        
+        .video-container:hover .play-btn-circle { transform: scale(1.1); background: #b92525; }
+        
+        /* State when playing */
+        .video-container.is-playing .play-overlay { opacity: 0; pointer-events: none; }
+        .video-container.is-playing .video-cover-img { opacity: 0; pointer-events: none; }
+
+        /* --- FOOTER --- */
+        footer { 
+            border-top: 1px solid var(--card-border); 
+            padding: 4rem 5%; text-align: center; margin-top: 0rem; 
+            background: var(--bg-body);
+        }
+        .social-links { display: flex; justify-content: center; gap: 15px; margin-bottom: 25px; }
+        .social-links a {
+            width: 40px; height: 40px; border: 1px solid var(--text-muted);
+            display: flex; align-items: center; justify-content: center;
+            color: var(--text-muted); text-decoration: none; transition: 0.3s;
+        }
+        .social-links a:hover { background: var(--text-main); color: var(--bg-body); border-color: var(--text-main); }
+        html.blind-mode .social-links a:hover { background: #000; color: #fff; border-color: #000; }
+
+        @media (max-width: 768px) {
+            .nav-menu { display: none; } 
+            .article-hero { padding-top: 7rem; }
+            .article-title { font-size: 2.5rem; }
+            .nav-btn span { display: none; } 
+        }
+    </style>
+</head>
+<body>
+
+    <div id="cursor-dot"></div>
+    <div class="aurora-bg"></div>
+    <canvas id="engineering-canvas"></canvas>
+
+    <nav>
+        <div class="logo hover-trigger magnetic" onclick="window.location.href='http://www.sawaed-om.org'">
+            <img src="logo.png" alt="Sawaed Logo">
+            <span></span>
+        </div>
+        <div class="nav-menu">
+            <a href="http://www.sawaed-om.org" class="nav-link hover-trigger">Home</a>
+            <a href="http://www.sawaed-om.org/join-us" class="nav-link join-btn hover-trigger magnetic">Join Us</a>
+        </div>
+        <div class="nav-controls">
+            <button class="nav-btn hover-trigger magnetic" onclick="toggleTheme()" id="themeBtn">
+                <i class="fas fa-moon"></i> <span>DARK</span>
+            </button>
+            <button class="nav-btn hover-trigger magnetic" onclick="toggleBlindMode()" id="blindBtn">
+                <i class="fas fa-eye"></i> <span>CONTRAST</span>
+            </button>
+        </div>
+    </nav>
+
+    <header class="article-hero">
+        <div class="article-meta gsap-hero">
+            <span><i class="far fa-calendar"></i> 26 October 2025</span>
+            <span><i class="fas fa-map-marker-alt"></i> MS Teams (Virtual)</span>
+            <span><i class="fas fa-tag"></i> Networking</span>
+        </div>
+        <h1 class="article-title gsap-hero">Introduction & Networking Session</h1>
+        <p class="article-subtitle gsap-hero">Building Connections, Sharing Vision, and Shaping the Future.</p>
+    </header>
+
+    <article class="article-container">
+        <div class="article-body gsap-reveal">
+            <div class="highlight-box">
+                <p style="margin:0; font-weight:600; color:var(--text-main);">
+                    On 26 October 2025, SAWAED successfully hosted its Introduction & Networking Session, a virtual gathering that brought together engineering students from across the United Kingdom.
+                </p>
+            </div>
+            
+            <p>Held online via Microsoft Teams, the session marked an important step in strengthening the SAWAED community and introducing members to the initiative’s vision, programs, and future opportunities.</p>
+            <p>The event was designed as an open and welcoming space for students—both new and existing members—to learn more about SAWAED’s mission and explore ways to actively engage with its growing ecosystem.</p>
+
+            <h3>Introducing SAWAED’s Vision</h3>
+            <p>The session began with an overview of SAWAED’s vision, mission, and strategic pillars, highlighting the initiative’s commitment to:</p>
+            <ul>
+                <li>Supporting Omani engineering students academically and professionally.</li>
+                <li>Creating meaningful opportunities for skills development and leadership.</li>
+                <li>Building a connected, collaborative, and values-driven community.</li>
+            </ul>
+
+            <h3>A Space for Connection</h3>
+            <p>A key focus of the session was networking and community building. Students from different universities, academic levels, and engineering disciplines had the opportunity to:</p>
+            <ul>
+                <li>Introduce themselves and share their academic journeys.</li>
+                <li>Connect with fellow students across the UK.</li>
+                <li>Ask questions and exchange ideas in an open, supportive environment.</li>
+            </ul>
+
+            <h3>Exploring Programs & Activities</h3>
+            <p>Attendees were introduced to several upcoming initiatives and activities, including:</p>
+            <ul>
+                <li>Engineering workshops focused on technical and professional skills.</li>
+                <li>Community-driven projects and volunteering opportunities.</li>
+                <li>Platforms for collaboration, discussion, and knowledge sharing.</li>
+            </ul>
+
+            <h3>Contributing to Pillars</h3>
+            <p>One of the highlights of the session was the introduction of SAWAED’s content and legacy platforms. Participants were encouraged to take part as writers, editors, contributors, and project collaborators in:</p>
+            <div class="highlight-box">
+                <ul style="margin:0; padding-left:20px;">
+                    <li><strong>The SAWAED Magazine:</strong> Where students and professionals collaborate to share insights.</li>
+                    <li><strong>News & Updates:</strong> Documenting SAWAED’s activities and milestones.</li>
+                    <li><strong>Legacy Initiatives:</strong> Creating lasting impact and institutional knowledge.</li>
+                </ul>
+            </div>
+
+            <h3>Looking Ahead</h3>
+            <p>The Introduction & Networking Session reaffirmed SAWAED’s belief that community is its strongest asset. By bringing students together, sharing a clear vision, and opening doors for meaningful involvement, the session set a positive tone for the months ahead.</p>
+            <p>SAWAED looks forward to building on this momentum through upcoming workshops, publications, and collaborative projects—and welcomes all members to be part of this journey.</p>
+        </div>
+
+        <div id="recording" class="article-body gsap-reveal" style="margin-top: 4rem; border-top: 1px solid var(--card-border); padding-top: 2rem;">
+            <h3><i class="fas fa-video"></i> Event Recording</h3>
+            <p>Missed the live session? Watch the full recording below.</p>
+            
+            <div class="video-container" id="videoWrapper">
+                <iframe 
+                    id="googleDriveFrame" 
+                    src="" 
+                    allow="autoplay"
+                    allowfullscreen>
+                </iframe>
+
+                <img src="Recording_cover.png" alt="Video Cover" class="video-cover-img">
+                
+                <div class="play-overlay" onclick="playVideo()">
+                    <div class="play-btn-circle">
+                        <i class="fas fa-play"></i>
+                    </div>
+                </div>
+            </div>
+            
+        </div>
+
+    </article>
+
+    <footer>
+        <div class="logo" style="justify-content:center; margin-bottom:20px;">
+            <img src="logo.png" style="height:40px;">
+        </div>
+        <div class="social-links">
+            <a href="https://www.linkedin.com/company/sawaedoman" class="hover-trigger magnetic"><i class="fab fa-linkedin-in"></i></a>
+            <a href="https://www.instagram.com/sawaed.om/" class="hover-trigger magnetic"><i class="fab fa-instagram"></i></a>
+            <a href="mailto:info@sawaed-om.org" class="hover-trigger magnetic"><i class="fas fa-envelope"></i></a>
+        </div>
+        <p style="color:var(--text-muted); font-size:0.8rem; font-family: 'Roboto Mono';">&copy; 2026 Sawaed Initiative. All Rights Reserved.</p>
+    </footer>
+
+    <script>
+        /* --- VIDEO PLAY LOGIC (GOOGLE DRIVE) --- */
+        function playVideo() {
+            // --- INSTRUCTIONS TO USER: ---
+            // 1. Upload your video to Google Drive.
+            // 2. Right click video > Share > Anyone with the link.
+            // 3. Copy the ID part of the link.
+            //    Example Link: https://drive.google.com/file/d/1aBcD_efgHiJkLmnOpQr/view?usp=sharing
+            //    The ID is: 1aBcD_efgHiJkLmnOpQr
+            
+            const driveVideoID = "1i4NdA33FW4pLbVzqsGaTyegfDlB7NpdB"; 
+
+            // --- END INSTRUCTIONS ---
+
+            const wrapper = document.getElementById('videoWrapper');
+            const iframe = document.getElementById('googleDriveFrame');
+            
+            // 1. Change State to Playing (hides cover image & button)
+            wrapper.classList.add('is-playing');
+            
+            // 2. Set the src to the Google Drive Preview link
+            iframe.src = "https://drive.google.com/file/d/" + driveVideoID + "/preview";
+            
+            // 3. Show the iframe
+            iframe.style.display = "block";
+        }
+
+        /* --- ANIMATIONS & THEME --- */
+        window.addEventListener('load', () => {
+            gsap.from(".gsap-hero", { y: 40, opacity: 0, duration: 1, stagger: 0.15, ease: "power3.out" });
+        });
+
+        const html = document.documentElement;
+        function toggleTheme() {
+            const current = html.getAttribute('data-theme');
+            const next = current === 'dark' ? 'light' : 'dark';
+            html.setAttribute('data-theme', next);
+            const btn = document.getElementById('themeBtn');
+            if(next === 'dark') {
+                btn.classList.add('active'); btn.innerHTML = '<i class="fas fa-sun"></i> <span>LIGHT</span>';
+            } else {
+                btn.classList.remove('active'); btn.innerHTML = '<i class="fas fa-moon"></i> <span>DARK</span>';
+            }
+        }
+        function toggleBlindMode() {
+            html.classList.toggle('blind-mode');
+            document.getElementById('blindBtn').classList.toggle('active');
+        }
+
+        gsap.registerPlugin(ScrollTrigger);
+        gsap.utils.toArray('.gsap-reveal').forEach(elem => {
+            gsap.from(elem, { scrollTrigger: { trigger: elem, start: "top 85%" }, y: 30, opacity: 0, duration: 1, ease: "power3.out" });
+        });
+
+        /* --- CANVAS & INTERACTIVITY --- */
+        const canvas = document.getElementById('engineering-canvas');
+        const ctx = canvas.getContext('2d');
+        let w, h, nodes = [];
+        const mouse = { x: null, y: null };
+
+        function resize() { w = canvas.width = window.innerWidth; h = canvas.height = window.innerHeight; initNodes(); }
+        function initNodes() {
+            nodes = [];
+            const count = window.innerWidth < 768 ? 40 : 80;
+            for(let i=0; i<count; i++) nodes.push({ x: Math.random()*w, y: Math.random()*h, vx: (Math.random()-0.5), vy: (Math.random()-0.5), size: Math.random()*4+2 });
+        }
+        function animateCanvas() {
+            ctx.clearRect(0, 0, w, h);
+            const styles = getComputedStyle(document.body);
+            if(styles.getPropertyValue('--canvas-display').trim() === 'none') { requestAnimationFrame(animateCanvas); return; }
+            const nodeColor = styles.getPropertyValue('--canvas-node').trim();
+            const lineColor = styles.getPropertyValue('--canvas-line').trim();
+            nodes.forEach(node => {
+                node.x += node.vx; node.y += node.vy;
+                if(node.x<0||node.x>w) node.vx*=-1; if(node.y<0||node.y>h) node.vy*=-1;
+                ctx.fillStyle = nodeColor; ctx.fillRect(node.x-node.size/2, node.y-node.size/2, node.size, node.size);
+                if (mouse.x) {
+                    const dist = Math.sqrt((mouse.x-node.x)**2 + (mouse.y-node.y)**2);
+                    if (dist < 150) { ctx.beginPath(); ctx.strokeStyle = lineColor; ctx.lineWidth = 0.5; ctx.moveTo(node.x, node.y); ctx.lineTo(mouse.x, mouse.y); ctx.stroke(); }
+                }
+            });
+            requestAnimationFrame(animateCanvas);
+        }
+        window.addEventListener('mousemove', (e) => {
+            mouse.x = e.clientX; mouse.y = e.clientY;
+            // Only move cursor dot if not hovering video
+            if (!e.target.closest('.video-container')) {
+                gsap.to(document.getElementById('cursor-dot'), { x: e.clientX, y: e.clientY, duration: 0.1 });
+            }
+        });
+        window.addEventListener('mouseleave', () => { mouse.x = null; mouse.y = null; });
+        window.addEventListener('resize', resize);
+        resize(); animateCanvas();
+
+        document.querySelectorAll('.hover-trigger').forEach(el => {
+            el.addEventListener('mouseenter', () => document.body.classList.add('hover-active'));
+            el.addEventListener('mouseleave', () => document.body.classList.remove('hover-active'));
+        });
+        document.querySelectorAll('.magnetic').forEach(el => {
+            el.addEventListener('mousemove', (e) => {
+                const rect = el.getBoundingClientRect();
+                gsap.to(el, { x: (e.clientX - rect.left - rect.width/2)*0.3, y: (e.clientY - rect.top - rect.height/2)*0.3, duration: 0.3, ease: "power2.out" });
+            });
+            el.addEventListener('mouseleave', () => gsap.to(el, { x: 0, y: 0, duration: 1, ease: "elastic.out(1, 0.3)" }));
+        });
+    </script>
+</body>
+</html>
