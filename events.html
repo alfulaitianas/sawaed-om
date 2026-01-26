@@ -39,6 +39,7 @@
             --cursor-color: #9A1F1F;
             --canvas-node: rgba(44, 62, 80, 0.6);
             --canvas-line: rgba(44, 62, 80, 0.15);
+            --canvas-display: block; /* Default to visible */
         }
 
         /* DARK MODE */
@@ -69,7 +70,7 @@
             --card-border: #000000 !important;
             
             --grid-color: transparent !important;
-            --canvas-display: none;
+            --canvas-display: none; /* Hide canvas in blind mode for performance/clarity */
             --cursor-color: #000000 !important;
         }
         
@@ -91,7 +92,8 @@
             color: var(--text-main);
             overflow-x: hidden;
             width: 100%;
-            transition: background-color 0.5s ease, color 0.5s ease;
+            /* Removed background transition for better performance */
+            /* transition: background-color 0.5s ease, color 0.5s ease; */
             
             background-image: 
                 linear-gradient(var(--grid-color) 1px, transparent 1px),
@@ -105,7 +107,7 @@
         .tech-font { font-family: 'Roboto Mono', monospace; letter-spacing: -0.5px; }
         
         /* --- SCROLL BAR --- */
-        #scroll-progress { position: fixed; top: 0; left: 0; height: 3px; width: 0%; background: var(--primary-red); z-index: 2000; }
+        #scroll-progress { position: fixed; top: 0; left: 0; height: 3px; width: 0%; background: var(--primary-red); z-index: 2000; will-change: width; }
 
         /* --- CURSOR --- */
         @media (hover: hover) {
@@ -117,6 +119,8 @@
                 pointer-events: none; z-index: 999999;
                 transform: translate(-50%, -50%);
                 transition: opacity 0.2s;
+                /* Optimize cursor rendering */
+                will-change: transform; 
             }
             body.hover-active #cursor-dot { opacity: 0.4; width: 12px; height: 12px; }
         }
@@ -124,18 +128,26 @@
         /* --- BACKGROUND CANVAS --- */
         #engineering-canvas {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            z-index: -2; pointer-events: none; display: var(--canvas-display, block);
+            z-index: -2; pointer-events: none; display: block;
         }
 
         /* --- NAVIGATION --- */
         nav {
             display: flex; justify-content: space-between; align-items: center;
             padding: 1rem 5%; position: fixed; top: 0; width: 100%; z-index: 1000;
-            background: rgba(255,255,255,0.8); backdrop-filter: blur(10px);
+            /* Optimized backdrop filter */
+            background: rgba(255,255,255,0.9); 
             border-bottom: 1px solid var(--card-border);
             transition: all 0.3s ease;
         }
-        html[data-theme="dark"] nav { background: rgba(11, 17, 32, 0.8); }
+        @supports (backdrop-filter: blur(10px)) {
+            nav { background: rgba(255,255,255,0.8); backdrop-filter: blur(10px); }
+        }
+        
+        html[data-theme="dark"] nav { background: rgba(11, 17, 32, 0.9); }
+        @supports (backdrop-filter: blur(10px)) {
+            html[data-theme="dark"] nav { background: rgba(11, 17, 32, 0.8); }
+        }
         
         .logo { display: flex; align-items: center; gap: 12px; font-weight: 600; font-size: 1.5rem; font-family: 'Teko', sans-serif; letter-spacing: 1px; }
         .logo img { height: 40px; width: auto; transition: filter 0.3s; }
@@ -326,12 +338,11 @@
 
     <div id="cursor-dot"></div>
 
-    <div class="aurora-bg"></div>
     <canvas id="engineering-canvas"></canvas>
 
     <nav>
         <div class="logo hover-trigger magnetic">
-            <img src="logo.png">
+            <img src="logo.png" alt="Logo">
             <span></span>
         </div>
 
@@ -505,31 +516,46 @@
     <script>
         /* --- 1. PRELOADER & HERO ANIMATION --- */
         window.addEventListener('load', () => {
-            // Preloader animation logic removed.
-            // Immediately start hero animations.
             startHeroAnimations();
+            updateCanvasColors(); // Initialize colors
+            resize(); // Initialize canvas
+            animateCanvas(); // Start Loop
         });
 
         function startHeroAnimations() {
             gsap.from(".gsap-hero", { y: 40, opacity: 0, duration: 1, stagger: 0.15, ease: "power3.out" });
         }
 
-        /* --- 2. SCROLL PROGRESS & TECH DIVIDERS --- */
+        /* --- 2. SCROLL PROGRESS (THROTTLED) --- */
+        let scrollTicking = false;
         window.addEventListener('scroll', () => {
-            const scrollPx = document.documentElement.scrollTop;
-            const winHeight = document.documentElement.scrollHeight - document.documentElement.clientHeight;
-            const scrolled = (scrollPx / winHeight) * 100;
-            document.getElementById('scroll-progress').style.width = scrolled + "%";
-            
-            document.querySelectorAll('.scroll-line').forEach(line => {
-                const rect = line.getBoundingClientRect();
-                if(rect.top < window.innerHeight * 0.8) {
-                    line.classList.add('active');
-                }
-            });
+            if (!scrollTicking) {
+                window.requestAnimationFrame(() => {
+                    const scrollPx = document.documentElement.scrollTop;
+                    const winHeight = document.documentElement.scrollHeight - document.documentElement.clientHeight;
+                    const scrolled = (scrollPx / winHeight) * 100;
+                    document.getElementById('scroll-progress').style.width = scrolled + "%";
+                    scrollTicking = false;
+                });
+                scrollTicking = true;
+            }
         });
 
-        /* --- 3. THEME TOGGLES --- */
+        /* --- 3. TECH DIVIDER ANIMATION (INTERSECTION OBSERVER) --- */
+        // Replaced expensive scroll listener with Observer
+        const lineObserver = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('active');
+                    // Stop observing once activated to save resources
+                    lineObserver.unobserve(entry.target);
+                }
+            });
+        }, { threshold: 0.1 });
+
+        document.querySelectorAll('.scroll-line').forEach(line => lineObserver.observe(line));
+
+        /* --- 4. THEME TOGGLES --- */
         const html = document.documentElement;
         function toggleTheme() {
             const current = html.getAttribute('data-theme');
@@ -544,32 +570,59 @@
                 btn.classList.remove('active');
                 btn.innerHTML = '<i class="fas fa-moon"></i> <span>DARK</span>';
             }
+            updateCanvasColors(); // Update colors for canvas only when theme changes
         }
+
         function toggleBlindMode() {
             html.classList.toggle('blind-mode');
             document.getElementById('blindBtn').classList.toggle('active');
+            updateCanvasColors(); // Update colors
         }
 
-        /* --- 4. TABS LOGIC --- */
+        /* --- 5. TABS LOGIC --- */
         function openTab(id, btn) {
             document.querySelectorAll('.event-list').forEach(el => el.classList.remove('active'));
             document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
             document.getElementById(id).classList.add('active');
             btn.classList.add('active');
+            
+            // Re-trigger scroll trigger for revealed content
+            ScrollTrigger.refresh();
         }
 
-        /* --- 5. CANVAS & ANIMATIONS --- */
+        /* --- 6. CANVAS & ANIMATIONS --- */
         gsap.registerPlugin(ScrollTrigger);
         gsap.utils.toArray('.gsap-reveal').forEach(elem => {
             gsap.from(elem, { scrollTrigger: { trigger: elem, start: "top 90%" }, y: 30, opacity: 0, duration: 1, ease: "power3.out" });
         });
 
-        /* --- 6. ENGINEERING CANVAS (Interactive) --- */
+        /* --- 7. ENGINEERING CANVAS (OPTIMIZED) --- */
         const canvas = document.getElementById('engineering-canvas');
         const ctx = canvas.getContext('2d');
         let w, h, nodes = [];
         const mouse = { x: null, y: null };
         let clickPulse = { x: null, y: null, active: false, r: 0 };
+        
+        // CACHED COLORS to prevent layout thrashing
+        let cachedNodeColor = 'rgba(44, 62, 80, 0.6)';
+        let cachedLineColor = 'rgba(44, 62, 80, 0.15)';
+        let isCanvasVisible = true;
+
+        function updateCanvasColors() {
+            const styles = getComputedStyle(document.body);
+            // Check if canvas should be hidden (Blind Mode)
+            const display = styles.getPropertyValue('--canvas-display').trim();
+            if (display === 'none') {
+                isCanvasVisible = false;
+                ctx.clearRect(0, 0, w, h);
+                return;
+            } else {
+                isCanvasVisible = true;
+            }
+            
+            cachedNodeColor = styles.getPropertyValue('--canvas-node').trim();
+            cachedLineColor = styles.getPropertyValue('--canvas-line').trim();
+        }
 
         function resize() {
             w = canvas.width = window.innerWidth;
@@ -579,27 +632,27 @@
 
         function initNodes() {
             nodes = [];
-            const count = window.innerWidth < 768 ? 40 : 80;
+            const count = window.innerWidth < 768 ? 30 : 60; // Reduced count slightly for better performance
             for(let i=0; i<count; i++) {
                 nodes.push({
                     x: Math.random() * w,
                     y: Math.random() * h,
-                    vx: (Math.random() - 0.5) * 1,
-                    vy: (Math.random() - 0.5) * 1,
+                    vx: (Math.random() - 0.5) * 0.8, // Slower speed looks smoother
+                    vy: (Math.random() - 0.5) * 0.8,
                     size: Math.random() * 4 + 2
                 });
             }
         }
 
         function animateCanvas() {
-            ctx.clearRect(0, 0, w, h);
-            const styles = getComputedStyle(document.body);
-            if(styles.getPropertyValue('--canvas-display').trim() === 'none') {
-                requestAnimationFrame(animateCanvas); return;
+            if (!isCanvasVisible) {
+                requestAnimationFrame(animateCanvas);
+                return;
             }
 
-            const nodeColor = styles.getPropertyValue('--canvas-node').trim();
-            const lineColor = styles.getPropertyValue('--canvas-line').trim();
+            ctx.clearRect(0, 0, w, h);
+            
+            // REMOVED getComputedStyle FROM LOOP - Uses cached variables now
             
             if(clickPulse.active) {
                 clickPulse.r += 5;
@@ -611,7 +664,12 @@
                 if(clickPulse.r > 200) clickPulse.active = false;
             }
 
-            nodes.forEach((node, i) => {
+            // Draw Nodes & Lines
+            ctx.fillStyle = cachedNodeColor;
+            
+            for(let i=0; i<nodes.length; i++) {
+                let node = nodes[i];
+
                 if(clickPulse.active) {
                     const dx = node.x - clickPulse.x;
                     const dy = node.y - clickPulse.y;
@@ -627,35 +685,37 @@
                 if(node.x < 0 || node.x > w) node.vx *= -1;
                 if(node.y < 0 || node.y > h) node.vy *= -1;
 
-                ctx.fillStyle = nodeColor;
                 ctx.fillRect(node.x - node.size/2, node.y - node.size/2, node.size, node.size);
 
+                // Mouse Connections
                 if (mouse.x) {
                     const dx = mouse.x - node.x;
                     const dy = mouse.y - node.y;
-                    const dist = Math.sqrt(dx*dx + dy*dy);
-                    if (dist < 150) {
-                        ctx.beginPath(); ctx.strokeStyle = lineColor; ctx.lineWidth = 0.5;
+                    const distSq = dx*dx + dy*dy; // Use squared distance to avoid Math.sqrt
+                    if (distSq < 22500) { // 150^2
+                        ctx.beginPath(); ctx.strokeStyle = cachedLineColor; ctx.lineWidth = 0.5;
                         ctx.moveTo(node.x, node.y); ctx.lineTo(mouse.x, mouse.y); ctx.stroke();
                     }
                 }
                 
+                // Node-to-Node Connections
                 for(let j=i+1; j<nodes.length; j++) {
                     const n2 = nodes[j];
                     const dx = node.x - n2.x; const dy = node.y - n2.y;
-                    const dist = Math.sqrt(dx*dx + dy*dy);
-                    if(dist < 100) {
-                        ctx.beginPath(); ctx.strokeStyle = lineColor; ctx.lineWidth = 0.2;
+                    const distSq = dx*dx + dy*dy;
+                    if(distSq < 10000) { // 100^2
+                        ctx.beginPath(); ctx.strokeStyle = cachedLineColor; ctx.lineWidth = 0.2;
                         ctx.moveTo(node.x, node.y); ctx.lineTo(n2.x, n2.y); ctx.stroke();
                     }
                 }
-            });
+            }
             requestAnimationFrame(animateCanvas);
         }
 
         window.addEventListener('mousemove', (e) => {
             mouse.x = e.clientX;
             mouse.y = e.clientY;
+            // GSAP is efficient, this is fine
             gsap.to(document.getElementById('cursor-dot'), { x: e.clientX, y: e.clientY, duration: 0.1 });
         });
         window.addEventListener('click', (e) => {
@@ -663,20 +723,27 @@
         });
         window.addEventListener('mouseleave', () => { mouse.x = null; mouse.y = null; });
         window.addEventListener('resize', resize);
-        resize(); animateCanvas();
-
-        /* --- 7. INTERACTIVITY LISTENERS --- */
+        
+        /* --- 8. INTERACTIVITY LISTENERS (OPTIMIZED MAGNETIC) --- */
         document.querySelectorAll('.hover-trigger').forEach(el => {
             el.addEventListener('mouseenter', () => document.body.classList.add('hover-active'));
             el.addEventListener('mouseleave', () => document.body.classList.remove('hover-active'));
         });
+
+        // Optimization: Cache dimensions on mouseenter to avoid layout thrashing during movement
         document.querySelectorAll('.magnetic').forEach(el => {
+            let rect = {};
+            
+            el.addEventListener('mouseenter', () => {
+                rect = el.getBoundingClientRect(); // Calculate ONLY once on enter
+            });
+
             el.addEventListener('mousemove', (e) => {
-                const rect = el.getBoundingClientRect();
                 const x = e.clientX - rect.left - rect.width / 2;
                 const y = e.clientY - rect.top - rect.height / 2;
                 gsap.to(el, { x: x * 0.3, y: y * 0.3, duration: 0.3, ease: "power2.out" });
             });
+            
             el.addEventListener('mouseleave', () => {
                 gsap.to(el, { x: 0, y: 0, duration: 1, ease: "elastic.out(1, 0.3)" });
             });
