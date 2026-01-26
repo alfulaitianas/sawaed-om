@@ -25,6 +25,7 @@
             --border-width: 1px;          
             --border-radius: 4px;         
             --cursor-color: #9A1F1F;
+            --grid-color: rgba(44, 62, 80, 0.05);
             --canvas-node: rgba(44, 62, 80, 0.6);
             --canvas-line: rgba(44, 62, 80, 0.15);
         }
@@ -36,6 +37,7 @@
             --card-bg: #1e293b;
             --card-border: #334155;
             --cursor-color: #ffffff;
+            --grid-color: rgba(255,255,255,0.03);
             --canvas-node: rgba(255, 255, 255, 0.4);
             --canvas-line: rgba(255, 255, 255, 0.08);
         }
@@ -48,6 +50,7 @@
             --card-bg: #ffffff !important;
             --card-border: #000000 !important;
             --canvas-display: none;
+            --grid-color: transparent !important;
             --cursor-color: #000000 !important;
         }
         
@@ -68,7 +71,11 @@
             background-color: var(--bg-body);
             color: var(--text-main);
             width: 100%;
-            /* Removed Background Grid to stop repaint lag */
+            /* GRID RESTORED */
+            background-image: 
+                linear-gradient(var(--grid-color) 1px, transparent 1px),
+                linear-gradient(90deg, var(--grid-color) 1px, transparent 1px);
+            background-size: 30px 30px;
         }
         * { box-sizing: border-box; }
         h1, h2, h3, h4 { font-family: 'Teko', sans-serif; text-transform: uppercase; letter-spacing: 0.5px; }
@@ -92,11 +99,11 @@
             z-index: -2; pointer-events: none; display: var(--canvas-display, block);
         }
 
-        /* --- NAVIGATION (NO BLUR = HIGH PERFORMANCE) --- */
+        /* --- NAVIGATION --- */
         nav {
             display: flex; justify-content: space-between; align-items: center;
             padding: 1rem 5%; position: fixed; top: 0; width: 100%; z-index: 1000;
-            background: var(--bg-body); /* Solid color instead of Blur */
+            background: var(--bg-body);
             border-bottom: 1px solid var(--card-border);
             opacity: 0.98;
         }
@@ -157,8 +164,10 @@
         .event-card {
             background: var(--card-bg); border: 1px solid var(--card-border);
             display: flex; flex-direction: column;
-            will-change: transform; /* Hint for GPU */
+            will-change: transform; 
             transition: transform 0.2s, border-color 0.2s;
+            /* CRITICAL FIX FOR ONLINE LAG: Locks the layout calculation for this card */
+            contain: layout paint; 
         }
         .event-card:hover { transform: translateY(-3px); border-color: var(--text-muted); }
         
@@ -177,14 +186,24 @@
         .event-content-wrapper { display: flex; padding: 20px; gap: 20px; flex-grow: 1; align-items: start; }
 
         .event-thumb-container {
-            flex-shrink: 0; width: 100px; height: 100px; /* Smaller thumb */
+            flex-shrink: 0; width: 120px; height: 120px; 
             background: #e2e8f0; border: 1px solid var(--card-border);
             display: flex; align-items: center; justify-content: center;
+            overflow: hidden; 
+            position: relative;
         }
-        /* ICONS ONLY - No broken image loading */
-        .event-thumb-container i { font-size: 2.5rem; color: var(--text-muted); }
+        .event-thumb-container img {
+            width: 100%; height: 100%; object-fit: cover;
+            display: block;
+        }
+        .event-thumb-container i { font-size: 2.5rem; color: var(--text-muted); display: none; } 
         
+        /* Fallback Mechanism */
+        .event-thumb-container.fallback-active img { display: none; }
+        .event-thumb-container.fallback-active i { display: block; }
+
         html.blind-mode .event-thumb-container { background: #fff; border: 2px solid #000; }
+        html.blind-mode .event-thumb-container img { filter: grayscale(100%) contrast(150%); }
         html.blind-mode .event-thumb-container i { color: #000; }
 
         .event-body { flex-grow: 1; }
@@ -199,6 +218,16 @@
         .event-footer { padding: 10px 20px; border-top: 1px solid var(--card-border); text-align: right; background: var(--bg-body); }
         .event-link { color: var(--primary-red); text-decoration: none; font-weight: 700; font-size: 0.75rem; font-family: 'Roboto Mono'; text-transform: uppercase; }
         
+        /* --- PRELOADER --- */
+        #preloader {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background-color: var(--bg-body); z-index: 999999;
+            display: flex; flex-direction: column; justify-content: center; align-items: center;
+        }
+        .boot-text { font-family: 'Roboto Mono', monospace; margin-bottom: 15px; color: var(--text-main); font-size: 0.9rem; }
+        .boot-bar { width: 150px; height: 2px; background: var(--card-border); position: relative; overflow: hidden; }
+        .boot-progress { position: absolute; top: 0; left: 0; height: 100%; width: 0%; background: var(--primary-red); }
+
         @media (max-width: 768px) {
             .page-hero h1 { font-size: 3rem; }
             .nav-menu { display: flex; gap: 10px; }
@@ -210,6 +239,13 @@
     </style>
 </head>
 <body>
+
+    <div id="preloader">
+        <div class="boot-text" id="boot-status">Loading Archive...</div>
+        <div class="boot-bar">
+            <div class="boot-progress"></div>
+        </div>
+    </div>
 
     <div id="cursor-dot"></div>
     <canvas id="engineering-canvas"></canvas>
@@ -256,6 +292,7 @@
                 </div>
                 <div class="event-content-wrapper">
                     <div class="event-thumb-container">
+                        <img src="home_photos/event_icon_01.jpg" alt="Intro" onerror="this.parentElement.classList.add('fallback-active');">
                         <i class="fas fa-video"></i>
                     </div>
                     <div class="event-body">
@@ -281,6 +318,7 @@
                 </div>
                 <div class="event-content-wrapper">
                     <div class="event-thumb-container">
+                        <img src="home_photos/event_icon_02.jpg" alt="Debate" onerror="this.parentElement.classList.add('fallback-active');">
                         <i class="fas fa-comments"></i>
                     </div>
                     <div class="event-body">
@@ -306,6 +344,7 @@
                 </div>
                 <div class="event-content-wrapper">
                     <div class="event-thumb-container">
+                        <img src="home_photos/event_icon_03.jpg" alt="National Day" onerror="this.parentElement.classList.add('fallback-active');">
                         <i class="fas fa-flag"></i>
                     </div>
                     <div class="event-body">
@@ -330,7 +369,7 @@
                     <span class="event-tag">Workshop</span>
                 </div>
                 <div class="event-content-wrapper">
-                    <div class="event-thumb-container">
+                    <div class="event-thumb-container fallback-active">
                          <i class="fas fa-code"></i>
                     </div>
                     <div class="event-body">
@@ -355,7 +394,7 @@
                     <span class="event-tag">Archive</span>
                 </div>
                 <div class="event-content-wrapper">
-                    <div class="event-thumb-container" style="background: #eee;">
+                    <div class="event-thumb-container fallback-active">
                         <i class="fas fa-archive"></i>
                     </div>
                     <div class="event-body">
@@ -377,7 +416,7 @@
                     <span class="event-tag">Workshop</span>
                 </div>
                 <div class="event-content-wrapper">
-                    <div class="event-thumb-container">
+                    <div class="event-thumb-container fallback-active">
                         <i class="fas fa-solar-panel"></i>
                     </div>
                     <div class="event-body">
@@ -398,7 +437,7 @@
                     <span class="event-tag">Networking</span>
                 </div>
                 <div class="event-content-wrapper">
-                    <div class="event-thumb-container">
+                    <div class="event-thumb-container fallback-active">
                          <i class="fas fa-users"></i>
                     </div>
                     <div class="event-body">
@@ -419,7 +458,7 @@
                     <span class="event-tag">Planning</span>
                 </div>
                 <div class="event-content-wrapper">
-                    <div class="event-thumb-container">
+                    <div class="event-thumb-container fallback-active">
                         <i class="fas fa-pencil-ruler"></i>
                     </div>
                     <div class="event-body">
@@ -437,11 +476,29 @@
     </section>
 
     <script>
-        /* --- 1. JS FROM UPLOADED FILE (VERIFIED WORKING) --- */
+        /* --- 1. PRELOADER & HERO (SAFE MODE) --- */
         window.addEventListener('load', () => {
-            gsap.from(".gsap-hero", { y: 30, opacity: 0, duration: 1, stagger: 0.15, ease: "power3.out" });
+            const preloader = document.getElementById('preloader');
+            const bar = document.querySelector('.boot-progress');
+            
+            // Cache colors immediately
+            updateCanvasColors();
+
+            gsap.to(bar, { width: "100%", duration: 0.8, ease: "power2.inOut", onComplete: () => {
+                gsap.to(preloader, { opacity: 0, duration: 0.5, delay: 0.2, onComplete: () => {
+                    preloader.style.display = "none";
+                    startHeroAnimations();
+                    // FORCE REFRESH AFTER LOAD TO FIX SCROLL TRIGGER IF IMAGES FAILED
+                    ScrollTrigger.refresh();
+                }});
+            }});
         });
 
+        function startHeroAnimations() {
+            gsap.from(".gsap-hero", { y: 30, opacity: 0, duration: 1, stagger: 0.15, ease: "power3.out" });
+        }
+
+        /* --- 2. THEME TOGGLES --- */
         const html = document.documentElement;
         function toggleTheme() {
             const current = html.getAttribute('data-theme');
@@ -461,27 +518,26 @@
             updateCanvasColors();
         }
 
+        /* --- 3. ANIMATIONS & SCROLL TRIGGER --- */
         gsap.registerPlugin(ScrollTrigger);
         gsap.utils.toArray('.gsap-reveal').forEach(elem => {
             gsap.from(elem, { scrollTrigger: { trigger: elem, start: "top 90%" }, y: 30, opacity: 0, duration: 1, ease: "power3.out" });
         });
 
-        /* --- TABS LOGIC --- */
         function openTab(id, btn) {
             document.querySelectorAll('.event-list').forEach(el => el.classList.remove('active'));
             document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
             document.getElementById(id).classList.add('active');
             btn.classList.add('active');
-            // Refresh scrolltrigger or simple animation
             gsap.from("#"+id + " .event-card", { y: 20, opacity: 0, duration: 0.4, stagger: 0.1, clearProps: "all" });
+            ScrollTrigger.refresh(); // Crucial for online stability
         }
 
-        /* --- CANVAS (LIGHTWEIGHT VERSION) --- */
+        /* --- 4. CANVAS (FROM WORKING FILE) --- */
         const canvas = document.getElementById('engineering-canvas');
         const ctx = canvas.getContext('2d');
         let w, h, nodes = [];
         const mouse = { x: null, y: null };
-        
         let nodeColor, lineColor, isCanvasHidden = false;
 
         function updateCanvasColors() {
@@ -543,11 +599,13 @@
             requestAnimationFrame(animateCanvas);
         }
 
+        // --- PASSIVE LISTENERS FOR ONLINE PERFORMANCE ---
+        // { passive: true } tells the browser "I promise not to prevent the scroll", making it smoother
         window.addEventListener('mousemove', (e) => {
             mouse.x = e.clientX;
             mouse.y = e.clientY;
             gsap.to(document.getElementById('cursor-dot'), { x: e.clientX, y: e.clientY, duration: 0.1 });
-        });
+        }, { passive: true });
         
         window.addEventListener('mouseleave', () => { mouse.x = null; mouse.y = null; });
         window.addEventListener('resize', resize);
@@ -567,7 +625,7 @@
             el.addEventListener('mousemove', (e) => {
                 if(!rect) return;
                 gsap.to(el, { x: (e.clientX - rect.left - rect.width/2)*0.3, y: (e.clientY - rect.top - rect.height/2)*0.3, duration: 0.3, ease: "power2.out", overwrite: true });
-            });
+            }, { passive: true }); // Passive here too
             el.addEventListener('mouseleave', () => {
                 rect = null;
                 gsap.to(el, { x: 0, y: 0, duration: 1, ease: "elastic.out(1, 0.3)" });
