@@ -15,23 +15,33 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
     <style>
-        /* --- 1. CSS VARIABLES (RESTORED) --- */
+        /* --- 1. CSS VARIABLES (PRECISION THEME) - IDENTICAL TO HOME --- */
         :root {
+            /* Brand Colors */
             --primary-red: #9A1F1F;       
             --engineering-slate: #2c3e50; 
+            --tech-blue: #3498db;         
+            --safety-yellow: #f1c40f;     
+            
+            /* Backgrounds & Text */
             --bg-body: #f4f6f8;           
             --text-main: #0f172a;         
             --text-muted: #64748b;
+            
+            /* UI Elements */
             --card-bg: #ffffff;
             --card-border: #cbd5e1;       
+            --border-width: 1px;          
             --border-radius: 4px;         
+            
+            /* Canvas & Effects */
             --grid-color: rgba(44, 62, 80, 0.05);
             --cursor-color: #9A1F1F;
             --canvas-node: rgba(44, 62, 80, 0.6);
             --canvas-line: rgba(44, 62, 80, 0.15);
-            --canvas-display: block;
         }
 
+        /* DARK MODE */
         html[data-theme="dark"] {
             --bg-body: #0b1120;           
             --text-main: #f1f5f9;
@@ -39,28 +49,50 @@
             --card-bg: #1e293b;
             --card-border: #334155;
             --grid-color: rgba(255,255,255,0.03);
+            
             --cursor-color: #ffffff;
             --canvas-node: rgba(255, 255, 255, 0.4);
             --canvas-line: rgba(255, 255, 255, 0.08);
         }
 
+        /* BLIND MODE (High Contrast B&W) */
         html.blind-mode {
-            --primary-red: #000 !important;
-            --bg-body: #fff !important;
-            --text-main: #000 !important;
-            --card-bg: #fff !important;
-            --card-border: #000 !important;
+            --primary-red: #000000 !important;
+            --engineering-slate: #000000 !important;
+            --tech-blue: #000000 !important;
+            --safety-yellow: #000000 !important; 
+            
+            --bg-body: #ffffff !important;
+            --text-main: #000000 !important;
+            --text-muted: #000000 !important;
+            --card-bg: #ffffff !important;
+            --card-border: #000000 !important;
+            
             --grid-color: transparent !important;
             --canvas-display: none;
+            --cursor-color: #000000 !important;
+        }
+        
+        html[data-theme="dark"].blind-mode {
+            --primary-red: #ffffff !important;
+            --bg-body: #000000 !important;
+            --text-main: #ffffff !important;
+            --text-muted: #ffffff !important;
+            --card-bg: #000000 !important;
+            --card-border: #ffffff !important;
+            --cursor-color: #ffffff !important;
         }
 
-        /* --- GLOBAL RESET (RESTORED GRID BACKGROUND) --- */
+        /* --- GLOBAL RESET --- */
         html, body {
             margin: 0; padding: 0;
             font-family: 'Inter', sans-serif;
             background-color: var(--bg-body);
             color: var(--text-main);
             overflow-x: hidden;
+            width: 100%;
+            transition: background-color 0.5s ease, color 0.5s ease;
+            
             background-image: 
                 linear-gradient(var(--grid-color) 1px, transparent 1px),
                 linear-gradient(90deg, var(--grid-color) 1px, transparent 1px);
@@ -68,22 +100,42 @@
         }
         * { box-sizing: border-box; }
 
+        /* Typography */
         h1, h2, h3, h4 { font-family: 'Teko', sans-serif; text-transform: uppercase; letter-spacing: 0.5px; }
+        .tech-font { font-family: 'Roboto Mono', monospace; letter-spacing: -0.5px; }
         
-        #scroll-progress { position: fixed; top: 0; left: 0; height: 3px; width: 0%; background: var(--primary-red); z-index: 2000; will-change: width; }
+        /* --- PRELOADER --- */
+        #preloader {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background-color: var(--bg-body); z-index: 999999;
+            display: flex; flex-direction: column; justify-content: center; align-items: center;
+        }
+        .boot-text { font-family: 'Roboto Mono', monospace; margin-bottom: 15px; color: var(--text-main); font-size: 0.9rem; }
+        .boot-bar { width: 150px; height: 2px; background: var(--card-border); position: relative; overflow: hidden; }
+        .boot-progress { position: absolute; top: 0; left: 0; height: 100%; width: 0%; background: var(--primary-red); }
 
+        /* --- SCROLL BAR --- */
+        #scroll-progress { position: fixed; top: 0; left: 0; height: 3px; width: 0%; background: var(--primary-red); z-index: 2000; }
+
+        /* --- CURSOR --- */
         @media (hover: hover) {
             * { cursor: none !important; }
+            a, button, .btn, input, .hover-trigger, .accordion-header { cursor: none !important; }
             #cursor-dot {
                 position: fixed; top: 0; left: 0; width: 8px; height: 8px; 
                 background-color: var(--cursor-color);
                 pointer-events: none; z-index: 999999;
                 transform: translate(-50%, -50%);
-                will-change: transform; 
+                transition: opacity 0.2s;
             }
+            body.hover-active #cursor-dot { opacity: 0.4; width: 12px; height: 12px; }
         }
 
-        #engineering-canvas { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -2; pointer-events: none; }
+        /* --- BACKGROUND CANVAS --- */
+        #engineering-canvas {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            z-index: -2; pointer-events: none; display: var(--canvas-display, block);
+        }
 
         /* --- NAVIGATION --- */
         nav {
@@ -91,139 +143,492 @@
             padding: 1rem 5%; position: fixed; top: 0; width: 100%; z-index: 1000;
             background: rgba(255,255,255,0.8); backdrop-filter: blur(10px);
             border-bottom: 1px solid var(--card-border);
+            transition: all 0.3s ease;
         }
         html[data-theme="dark"] nav { background: rgba(11, 17, 32, 0.8); }
-        .logo img { height: 40px; }
+        
+        .logo { display: flex; align-items: center; gap: 12px; font-weight: 600; font-size: 1.5rem; font-family: 'Teko', sans-serif; letter-spacing: 1px; }
+        .logo img { height: 40px; width: auto; transition: filter 0.3s; }
+        
+        html[data-theme="dark"] .logo img { filter: none; }
+        html.blind-mode .logo img { filter: grayscale(100%) contrast(200%); }
+        html[data-theme="dark"].blind-mode .logo img { filter: grayscale(100%) contrast(200%); }
 
+        /* MIDDLE MENU - SIMPLIFIED */
         .nav-menu { display: flex; gap: 25px; align-items: center; }
-        .nav-link { text-decoration: none; color: var(--text-main); font-family: 'Roboto Mono'; font-weight: 600; font-size: 0.8rem; text-transform: uppercase; }
-        .join-btn { background: var(--primary-red); color: #fff; padding: 6px 16px; border-radius: var(--border-radius); border: 1px solid var(--primary-red); }
-
-        .page-header {
-            min-height: 45vh; display: flex; flex-direction: column;
-            justify-content: center; align-items: center; text-align: center;
-            padding: 8rem 5% 2rem; position: relative;
+        .nav-link {
+            text-decoration: none; color: var(--text-main);
+            font-family: 'Roboto Mono', monospace; font-weight: 600; font-size: 0.8rem;
+            text-transform: uppercase; transition: color 0.2s; position: relative;
         }
-        .page-header h1 { font-size: clamp(3rem, 8vw, 6rem); margin-bottom: 1.5rem; }
-        .hero-line { width: 2px; height: 40px; background: var(--primary-red); margin-bottom: 20px; }
+        .nav-link:hover { color: var(--primary-red); }
+        
+        /* Join Us Header Button */
+        .nav-link.join-btn {
+            background: var(--primary-red); color: #fff;
+            padding: 6px 16px; border-radius: var(--border-radius);
+            border: 1px solid var(--primary-red);
+        }
+        .nav-link.join-btn:hover { background: transparent; color: var(--primary-red); }
+        
+        html.blind-mode .nav-link.join-btn { background: #000; border-color: #000; }
+        html.blind-mode .nav-link.join-btn:hover { background: #fff; color: #000; }
 
-        /* --- EVENTS (RESTORED LAYOUT) --- */
-        section { padding: 4rem 5%; max-width: 1400px; margin: 0 auto; }
+        .nav-controls { display: flex; gap: 8px; }
+        .nav-btn {
+            background: transparent; 
+            border: 1px solid var(--card-border); 
+            color: var(--text-main); padding: 8px 14px; 
+            border-radius: var(--border-radius); 
+            font-size: 0.75rem; font-weight: 600; cursor: pointer; 
+            display: flex; align-items: center; gap: 6px; font-family: 'Roboto Mono', monospace;
+            transition: 0.2s;
+        }
+        .nav-btn:hover { background: var(--text-main); color: var(--bg-body); border-color: var(--text-main); }
+        .nav-btn.active { background: var(--primary-red); color: white; border-color: var(--primary-red); }
+        
+        html.blind-mode .nav-btn.active { background: #000; color: #fff; border-color: #000; }
+        html[data-theme="dark"].blind-mode .nav-btn.active { background: #fff; color: #000; border-color: #fff; }
+
+        /* --- PAGE SPECIFIC HERO --- */
+        .page-hero {
+            padding: 10rem 5% 4rem;
+            text-align: center;
+        }
+        .page-hero h1 {
+            font-size: 4rem; margin-bottom: 0.5rem; line-height: 1; color: var(--text-main);
+        }
+        .page-hero p {
+            font-family: 'Roboto Mono'; color: var(--primary-red); letter-spacing: 2px; text-transform: uppercase; font-size: 0.9rem;
+        }
+
+        /* --- EVENTS STYLES --- */
+        section { padding: 2rem 5% 6rem; max-width: 1400px; margin: 0 auto; position: relative; }
+        
         .tabs { display: flex; justify-content: center; gap: 10px; margin-bottom: 50px; }
         .tab-btn {
-            background: transparent; border: none; border-bottom: 2px solid var(--card-border);
-            padding: 10px 20px; cursor: pointer; color: var(--text-muted); font-family: 'Roboto Mono';
+            background: transparent; border-bottom: 2px solid var(--card-border); border-top: none; border-left: none; border-right: none;
+            padding: 10px 20px; cursor: pointer;
+            font-weight: 600; color: var(--text-muted); font-size: 0.9rem; font-family: 'Roboto Mono';
+            transition: 0.3s;
         }
         .tab-btn.active { color: var(--primary-red); border-bottom-color: var(--primary-red); }
+        html.blind-mode .tab-btn.active { color: #000; border-bottom-color: #000; }
+        html[data-theme="dark"].blind-mode .tab-btn.active { color: #fff; border-bottom-color: #fff; }
 
         .event-list { display: none; grid-template-columns: repeat(auto-fill, minmax(350px, 1fr)); gap: 30px; }
         .event-list.active { display: grid; }
 
-        .event-card { background: var(--card-bg); border: 1px solid var(--card-border); overflow: hidden; display: flex; flex-direction: column; transition: transform 0.3s; }
-        .event-card:hover { transform: translateY(-5px); }
-        .event-header { background: var(--bg-body); border-bottom: 1px solid var(--card-border); padding: 12px 20px; display: flex; justify-content: space-between; font-size: 0.85rem; }
-        .event-content-wrapper { display: flex; padding: 20px; gap: 20px; }
-        .event-thumb-container { width: 140px; height: 140px; flex-shrink: 0; border: 1px solid var(--card-border); overflow: hidden; }
-        .event-thumb-container img { width: 100%; height: 100%; object-fit: cover; }
-        .event-title { font-size: 1.4rem; margin: 0 0 8px 0; }
+        .event-card {
+            background: var(--card-bg); 
+            border: 1px solid var(--card-border);
+            overflow: hidden; display: flex; flex-direction: column;
+            transition: transform 0.3s;
+        }
+        .event-card:hover { transform: translateY(-5px); border-color: var(--text-muted); }
         
-        footer { border-top: 1px solid var(--card-border); padding: 4rem 5%; text-align: center; margin-top: 2rem; }
+        .event-header {
+            background: var(--bg-body); border-bottom: 1px solid var(--card-border);
+            padding: 12px 20px; display: flex; justify-content: space-between; align-items: center;
+        }
+        .event-date { font-weight: 700; color: var(--text-main); font-size: 0.85rem; }
+        .event-tag { 
+            background: var(--card-border); color: var(--text-main);
+            padding: 3px 8px; font-size: 0.7rem; font-weight: 600; font-family: 'Roboto Mono';
+        }
+        
+        html.blind-mode .event-tag {
+            background: #000000 !important; color: #ffffff !important; border: 1px solid #000000;
+        }
+        html[data-theme="dark"].blind-mode .event-tag {
+            background: #ffffff !important; color: #000000 !important;
+        }
+
+        .event-content-wrapper { display: flex; padding: 20px; gap: 20px; flex-grow: 1; align-items: start; }
+
+        .event-thumb-container {
+            flex-shrink: 0; width: 140px; height: 140px;
+            background: #e2e8f0; border: 1px solid var(--card-border);
+            position: relative; overflow: hidden; display: flex; align-items: center; justify-content: center;
+        }
+        .event-thumb-container img {
+            width: 100%; height: 100%; object-fit: cover;
+            transition: filter 0.3s;
+        }
+        /* Fallback icon if no image */
+        .event-thumb-container i { font-size: 3rem; color: var(--card-border); }
+        
+        html.blind-mode .event-thumb-container img { filter: grayscale(100%) contrast(120%) !important; }
+
+        .event-body { flex-grow: 1; }
+        .event-title { font-size: 1.4rem; margin: 0 0 8px 0; color: var(--text-main); line-height: 1.1; }
+        .event-meta { font-family: 'Roboto Mono'; font-size: 0.75rem; color: var(--text-muted); margin-bottom: 12px; display: flex; flex-wrap: wrap; gap: 15px; }
+        .event-meta i { color: var(--primary-red); margin-right: 5px; }
+        
+        .event-details { list-style: none; padding: 0; margin: 0; font-size: 0.85rem; color: var(--text-muted); }
+        .event-details li { margin-bottom: 4px; padding-left: 12px; position: relative; }
+        .event-details li::before { content: '›'; position: absolute; left: 0; color: var(--primary-red); font-weight: bold; }
+        
+        .event-footer { padding: 12px 20px; border-top: 1px solid var(--card-border); text-align: right; background: var(--bg-body); }
+        .event-link { color: var(--primary-red); text-decoration: none; font-weight: 700; font-size: 0.8rem; font-family: 'Roboto Mono'; text-transform: uppercase; }
+        .event-link:hover { text-decoration: underline; }
+
+        /* --- FOOTER --- */
+        footer { 
+            border-top: 1px solid var(--card-border); 
+            padding: 4rem 5%; text-align: center; margin-top: 6rem; 
+            background: var(--bg-body);
+        }
+        .social-links { display: flex; justify-content: center; gap: 15px; margin-bottom: 25px; }
+        .social-links a {
+            width: 40px; height: 40px; border: 1px solid var(--text-muted);
+            display: flex; align-items: center; justify-content: center;
+            color: var(--text-muted); text-decoration: none; transition: 0.3s;
+        }
+        .social-links a:hover { background: var(--text-main); color: var(--bg-body); border-color: var(--text-main); }
+        html.blind-mode .social-links a:hover { background: #000; color: #fff; border-color: #000; }
+
+        /* --- MOBILE OPTIMIZATION --- */
+        @media (max-width: 768px) {
+            .page-hero h1 { font-size: 3rem; }
+            .nav-menu { display: none; } /* On very small screens usually hidden, but we have important buttons now */
+            /* Force show Home/Join buttons on mobile for this specific page if desired, or keep hidden behind burger menu (simplified here) */
+            .nav-menu { display: flex; gap: 10px; }
+            .nav-link { font-size: 0.7rem; }
+            
+            .event-content-wrapper { flex-direction: column; }
+            .event-thumb-container { width: 100%; height: 200px; }
+            .nav-btn span { display: none; } 
+            .nav-btn { padding: 8px; }
+        }
     </style>
 </head>
 <body>
 
     <div id="scroll-progress"></div>
+
+    <div id="preloader">
+        <div class="boot-text" id="boot-status">Loading Archive...</div>
+        <div class="boot-bar">
+            <div class="boot-progress"></div>
+        </div>
+    </div>
+
     <div id="cursor-dot"></div>
     <canvas id="engineering-canvas"></canvas>
 
     <nav>
-        <div class="logo">
-            <img src="logo.png">
-        </div>
+        <a href="index.html" class="logo hover-trigger magnetic" style="text-decoration: none; color: inherit;">
+            <img src="logo.png" alt="Sawaed Logo">
+            <span></span>
+        </a>
+
         <div class="nav-menu">
-            <a href="index.html" class="nav-link">Home</a>
-            <a href="http://www.sawaed-om.org/join-us" class="nav-link join-btn">Join Us</a>
+            <a href="index.html" class="nav-link hover-trigger">Home</a>
+            <a href="http://www.sawaed-om.org/join-us" class="nav-link join-btn hover-trigger magnetic">Join Us</a>
         </div>
+
         <div class="nav-controls">
-            <button class="tab-btn" style="border:1px solid var(--card-border); border-radius:4px;" onclick="toggleTheme()">Theme</button>
+            <button class="nav-btn hover-trigger magnetic" onclick="toggleTheme()" id="themeBtn">
+                <i class="fas fa-moon"></i> <span>DARK</span>
+            </button>
+            <button class="nav-btn hover-trigger magnetic" onclick="toggleBlindMode()" id="blindBtn">
+                <i class="fas fa-eye"></i> <span>CONTRAST</span>
+            </button>
         </div>
     </nav>
 
-    <header class="page-header">
-        <div class="hero-line"></div>
-        <h1 class="gsap-hero">EVENTS ARCHIVE</h1>
-        <p class="gsap-hero">BUILDING SKILLS. ENHANCING KNOWLEDGE. STRENGTHENING CONNECTIONS.</p>
+    <header class="page-hero">
+        <h1 class="gsap-hero">Events Log</h1>
+        <p class="gsap-hero">Timeline of Engineering Activities</p>
     </header>
 
-    <section id="events-main">
-        <div class="tabs">
-            <button class="tab-btn active" onclick="openTab('past', this)">Past Events</button>
-            <button class="tab-btn" onclick="openTab('upcoming', this)">Upcoming Events</button>
+    <section id="events-container">
+        
+        <div class="tabs gsap-reveal">
+            <button class="tab-btn active hover-trigger magnetic" onclick="openTab('past', this)">Past Events</button>
+            <button class="tab-btn hover-trigger magnetic" onclick="openTab('upcoming', this)">Upcoming Events</button>
         </div>
 
-        <div id="past" class="event-list active">
-            <div class="event-card">
-                <div class="event-header"><span>26 Oct 2025</span><span style="color:var(--primary-red)">Virtual</span></div>
+        <div id="past" class="event-list active gsap-reveal">
+            
+            <div class="event-card hover-trigger">
+                <div class="event-header">
+                    <span class="event-date">26 Oct 2025</span>
+                    <span class="event-tag">Virtual</span>
+                </div>
                 <div class="event-content-wrapper">
-                    <div class="event-thumb-container"><img src="home_photos/event_icon_01.jpg"></div>
+                    <div class="event-thumb-container">
+                        <img src="home_photos/event_icon_01.jpg" alt="Sawaed Intro" onerror="this.style.display='none';this.nextElementSibling.style.display='block';">
+                        <i class="fas fa-video" style="display:none;"></i>
+                    </div>
                     <div class="event-body">
                         <h4 class="event-title">Sawaed Introduction</h4>
-                        <p style="font-size:0.9rem; color:var(--text-muted)">Intro to Sawaed Vision and Pillar Recruitment.</p>
+                        <div class="event-meta">
+                            <span><i class="far fa-clock"></i> 10:00 - 12:00</span>
+                            <span><i class="fas fa-map-marker-alt"></i> MS Teams</span>
+                        </div>
+                        <ul class="event-details">
+                            <li>Intro to Sawaed Vision</li>
+                            <li>Speaker: President</li>
+                            <li>Pillar Recruitment</li>
+                        </ul>
                     </div>
+                </div>
+                <div class="event-footer">
+                    <a href="#" class="event-link">Archived Report >></a>
                 </div>
             </div>
 
-            <div class="event-card">
-                <div class="event-header"><span>16 Nov 2025</span><span style="color:var(--primary-red)">Virtual</span></div>
+            <div class="event-card hover-trigger">
+                <div class="event-header">
+                    <span class="event-date">16 Nov 2025</span>
+                    <span class="event-tag">Virtual</span>
+                </div>
                 <div class="event-content-wrapper">
-                    <div class="event-thumb-container"><img src="home_photos/event_icon_02.jpg"></div>
+                    <div class="event-thumb-container">
+                        <img src="home_photos/event_icon_02.jpg" alt="Debate" onerror="this.style.display='none';this.nextElementSibling.style.display='block';">
+                        <i class="fas fa-comments" style="display:none;"></i>
+                    </div>
                     <div class="event-body">
                         <h4 class="event-title">The First Debate</h4>
-                        <p style="font-size:0.9rem; color:var(--text-muted)">AI vs Engineers: Collab with UK Debate Soc.</p>
+                        <div class="event-meta">
+                            <span><i class="far fa-clock"></i> 18:00 - 20:00</span>
+                            <span><i class="fas fa-map-marker-alt"></i> Google Meet</span>
+                        </div>
+                        <ul class="event-details">
+                            <li>Topic: "AI vs Engineers"</li>
+                            <li>Collab: UK Debate Soc</li>
+                            <li>Critical Thinking</li>
+                        </ul>
                     </div>
+                </div>
+                <div class="event-footer">
+                    <a href="#" class="event-link">Watch Recording >></a>
                 </div>
             </div>
 
-            <div class="event-card">
-                <div class="event-header"><span>22 Nov 2025</span><span style="color:var(--primary-red)">In Person</span></div>
+            <div class="event-card hover-trigger">
+                <div class="event-header">
+                    <span class="event-date">22 Nov 2025</span>
+                    <span class="event-tag">In person</span>
+                </div>
                 <div class="event-content-wrapper">
-                    <div class="event-thumb-container"><img src="home_photos/event_icon_03.jpg"></div>
+                    <div class="event-thumb-container">
+                        <img src="home_photos/event_icon_03.jpg" alt="National Day" onerror="this.style.display='none';this.nextElementSibling.style.display='block';">
+                        <i class="fas fa-flag" style="display:none;"></i>
+                    </div>
                     <div class="event-body">
                         <h4 class="event-title">National Omani Day</h4>
-                        <p style="font-size:0.9rem; color:var(--text-muted)">Sustainability chat and Omani embassy collaboration.</p>
+                        <div class="event-meta">
+                            <span><i class="far fa-clock"></i> All Day</span>
+                            <span><i class="fas fa-map-marker-alt"></i> Liverpool</span>
+                        </div>
+                        <ul class="event-details">
+                            <li>Org: Omani Embassy</li>
+                            <li>Sustainability Chat</li>
+                            <li>200+ Attendees</li>
+                        </ul>
                     </div>
+                </div>
+                <div class="event-footer">
+                    <a href="#" class="event-link">Photo Gallery >></a>
+                </div>
+            </div>
+            
+            <div class="event-card hover-trigger">
+                <div class="event-header">
+                    <span class="event-date">05 Dec 2025</span>
+                    <span class="event-tag">Workshop</span>
+                </div>
+                <div class="event-content-wrapper">
+                    <div class="event-thumb-container">
+                         <i class="fas fa-code"></i>
+                    </div>
+                    <div class="event-body">
+                        <h4 class="event-title">Python for Engineers</h4>
+                        <div class="event-meta">
+                            <span><i class="far fa-clock"></i> 15:00 - 17:00</span>
+                            <span><i class="fas fa-map-marker-alt"></i> London</span>
+                        </div>
+                        <ul class="event-details">
+                            <li>Data Analysis Basics</li>
+                            <li>Matplotlib plotting</li>
+                            <li>Hands-on coding</li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="event-footer">
+                    <a href="#" class="event-link">Access Materials >></a>
+                </div>
+            </div>
+            
+             <div class="event-card hover-trigger" style="opacity:0.6;">
+                <div class="event-header">
+                    <span class="event-date">2024</span>
+                    <span class="event-tag">Archive</span>
+                </div>
+                <div class="event-content-wrapper">
+                    <div class="event-thumb-container" style="background: #eee;">
+                        <i class="fas fa-archive" style="color:#ccc;"></i>
+                    </div>
+                    <div class="event-body">
+                        <h4 class="event-title">Legacy Archives</h4>
+                        <p style="color: var(--text-muted); font-size: 0.9rem;">Access the PDF database for events prior to 2025.</p>
+                    </div>
+                </div>
+                <div class="event-footer">
+                    <a href="#" class="event-link">Download PDF >></a>
                 </div>
             </div>
         </div>
 
         <div id="upcoming" class="event-list">
-            <div class="event-card">
-                <div class="event-header"><span>Q1 2026</span></div>
+            
+            <div class="event-card hover-trigger">
+                <div class="event-header">
+                    <span class="event-date">15 Feb 2026</span>
+                    <span class="event-tag">Workshop</span>
+                </div>
                 <div class="event-content-wrapper">
-                    <div class="event-thumb-container"><img src="upcoming_placeholder.jpg"></div>
+                    <div class="event-thumb-container">
+                        <img src="upcoming_placeholder_1.jpg" alt="Event Thumb" onerror="this.style.display='none';this.nextElementSibling.style.display='block';">
+                        <i class="fas fa-solar-panel" style="display:none; font-size:3rem; color: var(--text-muted);"></i>
+                    </div>
                     <div class="event-body">
-                        <h4 class="event-title">Spring Tech Workshop</h4>
-                        <p style="color:var(--text-muted)">Details coming soon.</p>
+                        <h4 class="event-title">Spring Tech: Renewables</h4>
+                        <div class="event-meta">
+                            <span><i class="fas fa-tools"></i> Technical Workshop</span>
+                            <span><i class="fas fa-map-marker-alt"></i> Manchester</span>
+                        </div>
+                        <p style="color: var(--text-muted); font-size: 0.9rem; line-height:1.6;">An in-depth look at solar PV integration in modern grids. Guest lecture from industry experts.</p>
                     </div>
                 </div>
+                <div class="event-footer"><a href="#" class="event-link">Register Interest</a></div>
             </div>
+
+            <div class="event-card hover-trigger">
+                <div class="event-header">
+                    <span class="event-date">10 Mar 2026</span>
+                    <span class="event-tag">Networking</span>
+                </div>
+                <div class="event-content-wrapper">
+                    <div class="event-thumb-container">
+                        <img src="upcoming_placeholder_2.jpg" alt="Event Thumb" onerror="this.style.display='none';this.nextElementSibling.style.display='block';">
+                         <i class="fas fa-users" style="display:none; font-size:3rem; color: var(--text-muted);"></i>
+                    </div>
+                    <div class="event-body">
+                        <h4 class="event-title">Sawaed Annual Meetup</h4>
+                        <div class="event-meta">
+                            <span><i class="fas fa-handshake"></i> Professional Networking</span>
+                            <span><i class="fas fa-map-marker-alt"></i> London</span>
+                        </div>
+                        <p style="color: var(--text-muted); font-size: 0.9rem; line-height:1.6;">Our biggest gathering of the year. Connect with fellow students, alumni, and engineering professionals.</p>
+                    </div>
+                </div>
+                <div class="event-footer"><a href="#" class="event-link">Get Tickets</a></div>
+            </div>
+
+             <div class="event-card hover-trigger">
+                <div class="event-header">
+                    <span class="event-date">Q2 2026</span>
+                    <span class="event-tag">Planning</span>
+                </div>
+                <div class="event-content-wrapper">
+                    <div class="event-thumb-container">
+                        <i class="fas fa-pencil-ruler"></i>
+                    </div>
+                    <div class="event-body">
+                        <h4 class="event-title">Design Competition</h4>
+                        <div class="event-meta">
+                            <span><i class="fas fa-trophy"></i> Challenge</span>
+                        </div>
+                        <p style="color: var(--text-muted); font-size: 0.9rem; line-height:1.6;">Stay tuned for the announcement of our annual CAD and Structural Design challenge.</p>
+                    </div>
+                </div>
+                <div class="event-footer"><a href="#" class="event-link" style="opacity: 0.5; cursor: default; text-decoration:none;">Coming Soon</a></div>
+            </div>
+
         </div>
     </section>
 
     <footer>
-        <p style="font-family: 'Roboto Mono'; font-size: 0.8rem;">&copy; 2026 Sawaed Initiative. All Rights Reserved.</p>
+        <div class="logo" style="justify-content:center; margin-bottom:20px;">
+            <img src="logo.png"  style="height:40px;">
+        </div>
+        <div class="social-links">
+            <a href="https://www.linkedin.com/company/sawaedoman" class="hover-trigger magnetic"><i class="fab fa-linkedin-in"></i></a>
+            <a href="https://www.instagram.com/sawaed.om/" class="hover-trigger magnetic"><i class="fab fa-instagram"></i></a>
+            <a href="mailto:info@sawaed-om.org" class="hover-trigger magnetic"><i class="fas fa-envelope"></i></a>
+        </div>
+        <p style="color:var(--text-muted); font-size:0.8rem; font-family: 'Roboto Mono';">&copy; 2026 Sawaed Initiative. All Rights Reserved.</p>
     </footer>
 
     <script>
-        // PERFORMANCE FIX: Cache styles outside the animation loop
-        let cachedNodeColor, cachedLineColor, isCanvasVisible;
-        function updateStyleCache() {
-            const styles = getComputedStyle(document.body);
-            cachedNodeColor = styles.getPropertyValue('--canvas-node').trim();
-            cachedLineColor = styles.getPropertyValue('--canvas-line').trim();
-            isCanvasVisible = styles.getPropertyValue('--canvas-display').trim() !== 'none';
+        /* --- 1. PRELOADER & HERO ANIMATION --- */
+        window.addEventListener('load', () => {
+            const preloader = document.getElementById('preloader');
+            const bar = document.querySelector('.boot-progress');
+            
+            gsap.to(bar, { width: "100%", duration: 0.8, ease: "power2.inOut", onComplete: () => {
+                gsap.to(preloader, { opacity: 0, duration: 0.5, delay: 0.2, onComplete: () => {
+                    preloader.style.display = "none";
+                    startHeroAnimations();
+                }});
+            }});
+        });
+
+        function startHeroAnimations() {
+            gsap.from(".gsap-hero", { y: 30, opacity: 0, duration: 1, stagger: 0.15, ease: "power3.out" });
         }
 
+        /* --- 2. SCROLL PROGRESS --- */
+        window.addEventListener('scroll', () => {
+            const scrollPx = document.documentElement.scrollTop;
+            const winHeight = document.documentElement.scrollHeight - document.documentElement.clientHeight;
+            const scrolled = (scrollPx / winHeight) * 100;
+            document.getElementById('scroll-progress').style.width = scrolled + "%";
+        });
+
+        /* --- 3. THEME TOGGLES --- */
+        const html = document.documentElement;
+        function toggleTheme() {
+            const current = html.getAttribute('data-theme');
+            const next = current === 'dark' ? 'light' : 'dark';
+            html.setAttribute('data-theme', next);
+            
+            const btn = document.getElementById('themeBtn');
+            if(next === 'dark') {
+                btn.classList.add('active');
+                btn.innerHTML = '<i class="fas fa-sun"></i> <span>LIGHT</span>';
+            } else {
+                btn.classList.remove('active');
+                btn.innerHTML = '<i class="fas fa-moon"></i> <span>DARK</span>';
+            }
+        }
+        function toggleBlindMode() {
+            html.classList.toggle('blind-mode');
+            document.getElementById('blindBtn').classList.toggle('active');
+        }
+
+        /* --- 4. TABS LOGIC --- */
+        function openTab(id, btn) {
+            document.querySelectorAll('.event-list').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            document.getElementById(id).classList.add('active');
+            btn.classList.add('active');
+            
+            // Re-trigger animation for the new tab content
+            gsap.from("#"+id + " .event-card", { y: 20, opacity: 0, duration: 0.5, stagger: 0.1, clearProps: "all" });
+        }
+
+        /* --- 5. ANIMATIONS --- */
+        gsap.registerPlugin(ScrollTrigger);
+        gsap.utils.toArray('.gsap-reveal').forEach(elem => {
+            gsap.from(elem, { scrollTrigger: { trigger: elem, start: "top 90%" }, y: 30, opacity: 0, duration: 1, ease: "power3.out" });
+        });
+
+        /* --- 6. ENGINEERING CANVAS (Background) --- */
         const canvas = document.getElementById('engineering-canvas');
         const ctx = canvas.getContext('2d');
         let w, h, nodes = [];
@@ -232,65 +637,90 @@
         function resize() {
             w = canvas.width = window.innerWidth;
             h = canvas.height = window.innerHeight;
+            initNodes();
+        }
+
+        function initNodes() {
             nodes = [];
-            const count = w < 768 ? 30 : 60;
+            const count = window.innerWidth < 768 ? 30 : 60; // Slightly fewer nodes for cleaner sub-page
             for(let i=0; i<count; i++) {
-                nodes.push({ x: Math.random()*w, y: Math.random()*h, vx: (Math.random()-0.5)*0.7, vy: (Math.random()-0.5)*0.7, size: Math.random()*3+2 });
+                nodes.push({
+                    x: Math.random() * w,
+                    y: Math.random() * h,
+                    vx: (Math.random() - 0.5) * 0.8,
+                    vy: (Math.random() - 0.5) * 0.8,
+                    size: Math.random() * 4 + 2
+                });
             }
         }
 
-        function animate() {
-            if (!isCanvasVisible) { requestAnimationFrame(animate); return; }
+        function animateCanvas() {
             ctx.clearRect(0, 0, w, h);
-            ctx.fillStyle = cachedNodeColor;
-            
-            for(let i=0; i<nodes.length; i++) {
-                let n = nodes[i];
-                n.x += n.vx; n.y += n.vy;
-                if(n.x<0 || n.x>w) n.vx*=-1;
-                if(n.y<0 || n.y>h) n.vy*=-1;
-                ctx.fillRect(n.x, n.y, n.size, n.size);
+            const styles = getComputedStyle(document.body);
+            if(styles.getPropertyValue('--canvas-display').trim() === 'none') {
+                requestAnimationFrame(animateCanvas); return;
+            }
 
-                for(let j=i+1; j<nodes.length; j++) {
-                    let n2 = nodes[j];
-                    let dx = n.x - n2.x; let dy = n.y - n2.y;
-                    let distSq = dx*dx + dy*dy; // Faster than Math.sqrt
-                    if(distSq < 10000) {
-                        ctx.beginPath(); ctx.strokeStyle = cachedLineColor; ctx.lineWidth = 0.2;
-                        ctx.moveTo(n.x, n.y); ctx.lineTo(n2.x, n2.y); ctx.stroke();
+            const nodeColor = styles.getPropertyValue('--canvas-node').trim();
+            const lineColor = styles.getPropertyValue('--canvas-line').trim();
+            
+            nodes.forEach((node, i) => {
+                node.x += node.vx; node.y += node.vy;
+                if(node.x < 0 || node.x > w) node.vx *= -1;
+                if(node.y < 0 || node.y > h) node.vy *= -1;
+
+                ctx.fillStyle = nodeColor;
+                ctx.fillRect(node.x - node.size/2, node.y - node.size/2, node.size, node.size);
+
+                if (mouse.x) {
+                    const dx = mouse.x - node.x;
+                    const dy = mouse.y - node.y;
+                    const dist = Math.sqrt(dx*dx + dy*dy);
+                    if (dist < 150) {
+                        ctx.beginPath(); ctx.strokeStyle = lineColor; ctx.lineWidth = 0.5;
+                        ctx.moveTo(node.x, node.y); ctx.lineTo(mouse.x, mouse.y); ctx.stroke();
                     }
                 }
-            }
-            requestAnimationFrame(animate);
+                
+                for(let j=i+1; j<nodes.length; j++) {
+                    const n2 = nodes[j];
+                    const dx = node.x - n2.x; const dy = node.y - n2.y;
+                    const dist = Math.sqrt(dx*dx + dy*dy);
+                    if(dist < 100) {
+                        ctx.beginPath(); ctx.strokeStyle = lineColor; ctx.lineWidth = 0.2;
+                        ctx.moveTo(node.x, node.y); ctx.lineTo(n2.x, n2.y); ctx.stroke();
+                    }
+                }
+            });
+            requestAnimationFrame(animateCanvas);
         }
-
-        function toggleTheme() {
-            const html = document.documentElement;
-            html.setAttribute('data-theme', html.getAttribute('data-theme') === 'dark' ? 'light' : 'dark');
-            updateStyleCache();
-        }
-
-        function openTab(id, btn) {
-            document.querySelectorAll('.event-list').forEach(l => l.classList.remove('active'));
-            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-            document.getElementById(id).classList.add('active');
-            btn.classList.add('active');
-        }
-
-        window.addEventListener('scroll', () => {
-            const scrolled = (window.scrollY / (document.documentElement.scrollHeight - window.innerHeight)) * 100;
-            document.getElementById('scroll-progress').style.width = scrolled + '%';
-        });
 
         window.addEventListener('mousemove', (e) => {
-            gsap.to('#cursor-dot', { x: e.clientX, y: e.clientY, duration: 0.1 });
+            mouse.x = e.clientX;
+            mouse.y = e.clientY;
+            gsap.to(document.getElementById('cursor-dot'), { x: e.clientX, y: e.clientY, duration: 0.1 });
+        });
+        window.addEventListener('mouseleave', () => { mouse.x = null; mouse.y = null; });
+        window.addEventListener('resize', resize);
+        resize(); animateCanvas();
+
+        /* --- 7. INTERACTIVITY --- */
+        document.querySelectorAll('.hover-trigger').forEach(el => {
+            el.addEventListener('mouseenter', () => document.body.classList.add('hover-active'));
+            el.addEventListener('mouseleave', () => document.body.classList.remove('hover-active'));
+        });
+        document.querySelectorAll('.magnetic').forEach(el => {
+            el.addEventListener('mousemove', (e) => {
+                const rect = el.getBoundingClientRect();
+                const x = e.clientX - rect.left - rect.width / 2;
+                const y = e.clientY - rect.top - rect.height / 2;
+                gsap.to(el, { x: x * 0.3, y: y * 0.3, duration: 0.3, ease: "power2.out" });
+            });
+            el.addEventListener('mouseleave', () => {
+                gsap.to(el, { x: 0, y: 0, duration: 1, ease: "elastic.out(1, 0.3)" });
+            });
         });
 
-        window.addEventListener('resize', resize);
-        updateStyleCache();
-        resize();
-        animate();
-        gsap.from(".gsap-hero", { y: 30, opacity: 0, stagger: 0.2, duration: 1 });
     </script>
 </body>
 </html>
