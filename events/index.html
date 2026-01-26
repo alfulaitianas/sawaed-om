@@ -1,395 +1,539 @@
 <!DOCTYPE html>
-<html lang="en" data-theme="light">
+<html lang="en" data-theme="light" dir="ltr">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sawaed | Events Log</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     
+    <title>Sawaed | Events Log</title>
+    <meta name="description" content="Sawaed Engineering Initiative - Events Log">
+
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&family=Roboto+Mono:wght@400;500;700&family=Teko:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
-
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
     <style>
-        /* --- THEME VARIABLES --- */
+        /* --- 1. THEME VARIABLES (MATCHING INDEX.HTML) --- */
         :root {
-            --red: #9A1F1F;
-            --slate: #2c3e50;
-            --bg: #f8fafc;
-            --text: #0f172a;
-            --muted: #64748b;
-            --card: #ffffff;
-            --border: #e2e8f0;
-            --grid-line: rgba(44, 62, 80, 0.05);
-            --node-color: rgba(44, 62, 80, 0.6);
+            --primary-red: #9A1F1F;       
+            --engineering-slate: #2c3e50; 
+            --bg-body: #f4f6f8;           
+            --text-main: #0f172a;         
+            --text-muted: #64748b;
+            --card-bg: #ffffff;
+            --card-border: #cbd5e1;       
+            --grid-color: rgba(44, 62, 80, 0.05);
+            --cursor-color: #9A1F1F;
+            --canvas-node: rgba(44, 62, 80, 0.6);
+            --canvas-line: rgba(44, 62, 80, 0.15);
         }
 
         html[data-theme="dark"] {
-            --bg: #0b1120;
-            --text: #f1f5f9;
-            --muted: #94a3b8;
-            --card: #1e293b;
-            --border: #334155;
-            --grid-line: rgba(255, 255, 255, 0.03);
-            --node-color: rgba(255, 255, 255, 0.4);
+            --bg-body: #0b1120;           
+            --text-main: #f1f5f9;
+            --text-muted: #94a3b8;
+            --card-bg: #1e293b;
+            --card-border: #334155;
+            --grid-color: rgba(255,255,255,0.03);
+            --cursor-color: #ffffff;
+            --canvas-node: rgba(255, 255, 255, 0.4);
+            --canvas-line: rgba(255, 255, 255, 0.08);
         }
 
         html.blind-mode {
-            --red: #000; --bg: #fff; --text: #000; --muted: #000; --card: #fff; --border: #000;
-            --grid-line: transparent; --node-color: transparent;
+            --primary-red: #000000 !important;
+            --bg-body: #ffffff !important;
+            --text-main: #000000 !important;
+            --text-muted: #000000 !important;
+            --card-bg: #ffffff !important;
+            --card-border: #000000 !important;
+            --grid-color: transparent !important;
+            --cursor-color: #000000 !important;
+            --canvas-display: none;
         }
         
         html[data-theme="dark"].blind-mode {
-            --red: #fff; --bg: #000; --text: #fff; --muted: #fff; --card: #000; --border: #fff;
+            --primary-red: #ffffff !important;
+            --bg-body: #000000 !important;
+            --text-main: #ffffff !important;
+            --text-muted: #ffffff !important;
+            --card-bg: #000000 !important;
+            --card-border: #ffffff !important;
+            --cursor-color: #ffffff !important;
         }
 
-        /* --- BASE STYLES --- */
-        body {
+        /* --- GLOBAL RESET --- */
+        html, body {
             margin: 0; padding: 0;
             font-family: 'Inter', sans-serif;
-            background-color: var(--bg);
-            color: var(--text);
-            /* Static Grid Background (No JS required) */
-            background-image: 
-                linear-gradient(var(--grid-line) 1px, transparent 1px),
-                linear-gradient(90deg, var(--grid-line) 1px, transparent 1px);
-            background-size: 40px 40px;
+            background-color: var(--bg-body);
+            color: var(--text-main);
             overflow-x: hidden;
-            transition: background-color 0.3s, color 0.3s;
+            width: 100%;
+            background-image: 
+                linear-gradient(var(--grid-color) 1px, transparent 1px),
+                linear-gradient(90deg, var(--grid-color) 1px, transparent 1px);
+            background-size: 30px 30px;
+        }
+        * { box-sizing: border-box; }
+
+        h1, h2, h3, h4 { font-family: 'Teko', sans-serif; text-transform: uppercase; letter-spacing: 0.5px; }
+        .tech-font { font-family: 'Roboto Mono', monospace; letter-spacing: -0.5px; }
+
+        /* --- BACKGROUND CANVAS --- */
+        #engineering-canvas {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            z-index: -2; pointer-events: none; display: var(--canvas-display, block);
         }
 
-        /* --- TYPOGRAPHY --- */
-        h1, h2, h3 { font-family: 'Teko', sans-serif; text-transform: uppercase; margin: 0; }
-        .mono { font-family: 'Roboto Mono', monospace; }
-
-        /* --- CANVAS --- */
-        canvas { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -1; pointer-events: none; }
-
-        /* --- NAV --- */
+        /* --- NAVIGATION (EXACT COPY) --- */
         nav {
-            position: fixed; top: 0; width: 100%; z-index: 100;
             display: flex; justify-content: space-between; align-items: center;
-            padding: 1rem 5%;
-            background: var(--bg); border-bottom: 1px solid var(--border);
-            opacity: 0.98; /* High performance opacity, not blur */
+            padding: 1rem 5%; position: fixed; top: 0; width: 100%; z-index: 1000;
+            background: rgba(255,255,255,0.9); backdrop-filter: blur(8px);
+            border-bottom: 1px solid var(--card-border);
+            transition: all 0.3s ease;
         }
-        .nav-logo { font-family: 'Teko'; font-size: 1.5rem; font-weight: 700; display: flex; align-items: center; gap: 10px; cursor: pointer; }
-        .nav-logo img { height: 35px; }
+        html[data-theme="dark"] nav { background: rgba(11, 17, 32, 0.9); }
         
-        .nav-links { display: flex; gap: 20px; align-items: center; }
-        .nav-link { text-decoration: none; color: var(--text); font-weight: 600; font-size: 0.9rem; text-transform: uppercase; }
-        .nav-link:hover { color: var(--red); }
-        .btn-join { 
-            background: var(--red); color: #fff; padding: 8px 20px; 
-            border-radius: 4px; text-decoration: none; font-weight: 600; 
-            transition: transform 0.2s;
+        .logo { display: flex; align-items: center; gap: 12px; font-weight: 600; font-size: 1.5rem; font-family: 'Teko', sans-serif; letter-spacing: 1px; }
+        .logo img { height: 40px; width: auto; }
+        html[data-theme="dark"] .logo img { filter: none; }
+        html.blind-mode .logo img { filter: grayscale(100%) contrast(200%); }
+
+        .nav-menu { display: flex; gap: 25px; align-items: center; }
+        .nav-link {
+            text-decoration: none; color: var(--text-main);
+            font-family: 'Roboto Mono', monospace; font-weight: 600; font-size: 0.8rem;
+            text-transform: uppercase; transition: color 0.2s;
         }
-        .btn-join:hover { transform: translateY(-2px); }
+        .nav-link:hover { color: var(--primary-red); }
+        .nav-link.join-btn {
+            background: var(--primary-red); color: #fff;
+            padding: 6px 16px; border-radius: 4px;
+            border: 1px solid var(--primary-red);
+        }
+        .nav-link.join-btn:hover { background: transparent; color: var(--primary-red); }
+        html.blind-mode .nav-link.join-btn { background: #000; border-color: #000; }
 
-        .nav-toggles button {
-            background: transparent; border: 1px solid var(--border);
-            color: var(--text); padding: 5px 10px; cursor: pointer;
-            margin-left: 5px; border-radius: 4px;
+        .nav-controls { display: flex; gap: 8px; }
+        .nav-btn {
+            background: transparent; border: 1px solid var(--card-border); 
+            color: var(--text-main); padding: 8px 14px; 
+            border-radius: 4px; font-size: 0.75rem; font-weight: 600; 
+            cursor: pointer; display: flex; align-items: center; gap: 6px; 
+            font-family: 'Roboto Mono', monospace;
+        }
+        .nav-btn:hover { background: var(--text-main); color: var(--bg-body); }
+        .nav-btn.active { background: var(--primary-red); color: white; border-color: var(--primary-red); }
+        html.blind-mode .nav-btn.active { background: #000; color: #fff; border-color: #000; }
+
+        /* --- PAGE HERO --- */
+        .page-hero {
+            padding: 9rem 5% 4rem; text-align: center;
+        }
+        .page-hero h1 {
+            font-size: 4rem; margin-bottom: 0.5rem; line-height: 1; color: var(--text-main);
+        }
+        .page-hero p {
+            font-family: 'Roboto Mono'; color: var(--primary-red); letter-spacing: 2px; text-transform: uppercase; font-size: 0.9rem;
         }
 
-        /* --- HERO --- */
-        header { padding: 8rem 5% 4rem; text-align: center; }
-        header h1 { font-size: 4rem; line-height: 1; margin-bottom: 10px; }
-        header p { color: var(--red); letter-spacing: 2px; text-transform: uppercase; }
-
-        /* --- LAYOUTS --- */
-        .container { max-width: 1200px; margin: 0 auto; padding: 0 5% 6rem; }
+        /* --- SECTIONS --- */
+        section { padding: 3rem 5%; max-width: 1400px; margin: 0 auto; position: relative; }
         
-        .section-title { 
-            font-size: 2rem; border-left: 4px solid var(--red); 
-            padding-left: 15px; margin-bottom: 30px; 
-            display: flex; align-items: center; gap: 15px;
+        .section-divider {
+            display: flex; align-items: center; gap: 15px; margin-bottom: 30px;
+            border-bottom: 1px solid var(--card-border); padding-bottom: 10px;
         }
-
-        /* --- CARD GRID (Past Events) --- */
-        .events-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 25px;
-            margin-bottom: 80px;
-        }
-
-        .card {
-            background: var(--card); border: 1px solid var(--border);
-            border-radius: 4px; overflow: hidden;
-            transition: transform 0.2s, border-color 0.2s;
-            /* Performance: Isolate painting */
-            contain: content; 
-        }
-        .card:hover { transform: translateY(-5px); border-color: var(--muted); }
-
-        .card-header { padding: 15px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; font-weight: 700; font-size: 0.9rem; }
-        .tag { background: var(--border); padding: 2px 8px; font-size: 0.7rem; border-radius: 2px; }
-
-        .card-body { padding: 20px; display: flex; gap: 15px; }
-        
-        /* PHOTO CONTAINER - Fixed Size to prevent lag */
-        .thumb { 
-            width: 80px; height: 80px; flex-shrink: 0; 
-            background: #eee; border: 1px solid var(--border);
-            display: flex; align-items: center; justify-content: center;
-        }
-        .thumb img { width: 100%; height: 100%; object-fit: cover; }
-        .thumb i { font-size: 1.5rem; color: #999; display: none; }
-        
-        /* Fallback logic */
-        .thumb.error img { display: none; }
-        .thumb.error i { display: block; }
-
-        .info h3 { font-size: 1.4rem; margin-bottom: 5px; line-height: 1.1; }
-        .meta { font-size: 0.75rem; color: var(--muted); margin-bottom: 10px; display: flex; gap: 10px; }
-        .meta i { color: var(--red); }
-
-        .card-footer { padding: 10px 20px; background: var(--bg); border-top: 1px solid var(--border); text-align: right; }
-        .link-arrow { color: var(--red); text-decoration: none; font-weight: 700; font-size: 0.8rem; text-transform: uppercase; }
+        .section-divider h2 { font-size: 2rem; color: var(--text-main); margin: 0; }
+        .section-divider i { font-size: 1.5rem; color: var(--primary-red); }
 
         /* --- UPCOMING FEATURE CARD --- */
-        .upcoming-wrapper {
-            background: var(--card); border: 1px solid var(--red);
-            padding: 40px; border-radius: 4px;
-            display: flex; align-items: center; gap: 40px;
-            position: relative; overflow: hidden;
+        .upcoming-feature {
+            background: var(--card-bg); border: 1px solid var(--primary-red);
+            border-radius: 4px; overflow: hidden; position: relative;
+            display: flex; flex-direction: column; md:flex-row;
+            padding: 40px; gap: 30px; text-align: center;
         }
-        /* Decorative distinct marker */
-        .upcoming-wrapper::before {
-            content: "NEXT"; position: absolute; right: -20px; top: 20px;
-            background: var(--red); color: #fff; padding: 5px 40px;
-            transform: rotate(45deg); font-weight: 700; font-family: 'Roboto Mono'; font-size: 0.8rem;
+        .upcoming-badge {
+            position: absolute; top: 0; right: 0; background: var(--primary-red);
+            color: #fff; padding: 5px 20px; font-family: 'Roboto Mono'; 
+            font-size: 0.8rem; font-weight: 700;
         }
-        .date-box {
-            background: var(--bg); border: 1px solid var(--border);
-            width: 100px; height: 100px; display: flex; flex-direction: column;
-            align-items: center; justify-content: center; flex-shrink: 0;
-        }
-        .db-month { color: var(--red); font-weight: 700; text-transform: uppercase; }
-        .db-day { font-size: 2.5rem; font-weight: 700; font-family: 'Teko'; line-height: 1; }
+        .upcoming-content h3 { font-size: 2.5rem; margin-bottom: 10px; line-height: 1; }
+        .upcoming-content p { color: var(--text-muted); max-width: 700px; margin: 0 auto 20px; }
         
+        /* --- YEAR GROUP --- */
+        .year-header {
+            font-family: 'Teko'; font-size: 1.8rem; color: var(--text-muted);
+            margin: 40px 0 20px; display: flex; align-items: center; gap: 10px;
+        }
+        .year-header::after { content: ''; flex-grow: 1; height: 1px; background: var(--card-border); }
+
+        /* --- EVENT GRID --- */
+        .event-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(350px, 1fr)); gap: 25px; }
+
+        .event-card {
+            background: var(--card-bg); border: 1px solid var(--card-border);
+            overflow: hidden; display: flex; flex-direction: column;
+            transition: transform 0.2s; contain: content; /* Performance Fix */
+        }
+        .event-card:hover { transform: translateY(-5px); border-color: var(--text-muted); }
+        
+        .event-header {
+            background: var(--bg-body); border-bottom: 1px solid var(--card-border);
+            padding: 12px 20px; display: flex; justify-content: space-between; align-items: center;
+        }
+        .event-date { font-weight: 700; color: var(--text-main); font-size: 0.85rem; }
+        .event-tag { 
+            background: var(--card-border); color: var(--text-main);
+            padding: 3px 8px; font-size: 0.7rem; font-weight: 600; font-family: 'Roboto Mono';
+        }
+        html.blind-mode .event-tag { background: #000; color: #fff; }
+
+        .event-body-wrapper { display: flex; padding: 20px; gap: 20px; flex-grow: 1; }
+
+        /* Fixed size container to prevent layout shifts */
+        .event-thumb {
+            width: 100px; height: 100px; flex-shrink: 0;
+            background: #e2e8f0; border: 1px solid var(--card-border);
+            display: flex; align-items: center; justify-content: center;
+            overflow: hidden;
+        }
+        .event-thumb img { width: 100%; height: 100%; object-fit: cover; }
+        .event-thumb i { font-size: 2rem; color: var(--text-muted); display: none; }
+        
+        /* Fallback for missing images */
+        .event-thumb.error img { display: none; }
+        .event-thumb.error i { display: block; }
+        html.blind-mode .event-thumb img { filter: grayscale(100%) contrast(150%); }
+
+        .event-info { flex-grow: 1; }
+        .event-title { font-size: 1.4rem; margin: 0 0 8px 0; color: var(--text-main); line-height: 1.1; }
+        .event-meta { font-family: 'Roboto Mono'; font-size: 0.75rem; color: var(--text-muted); margin-bottom: 12px; }
+        .event-meta i { color: var(--primary-red); margin-right: 5px; margin-left: 10px; }
+        .event-meta i:first-child { margin-left: 0; }
+
+        .event-list { padding: 0; margin: 0; list-style: none; font-size: 0.85rem; color: var(--text-muted); }
+        .event-list li::before { content: '› '; color: var(--primary-red); font-weight: bold; }
+
+        .event-footer { padding: 12px 20px; border-top: 1px solid var(--card-border); text-align: right; background: var(--bg-body); }
+        .event-link { color: var(--primary-red); text-decoration: none; font-weight: 700; font-size: 0.8rem; font-family: 'Roboto Mono'; text-transform: uppercase; }
+
+        /* --- PLACEHOLDER CARD --- */
+        .placeholder-card {
+            border: 1px dashed var(--card-border); background: transparent;
+            display: flex; align-items: center; justify-content: center;
+            min-height: 200px; color: var(--text-muted);
+            font-family: 'Roboto Mono'; text-align: center;
+            opacity: 0.7;
+        }
+
+        /* --- FOOTER --- */
+        footer { 
+            border-top: 1px solid var(--card-border); 
+            padding: 4rem 5%; text-align: center; margin-top: 6rem; 
+            background: var(--bg-body);
+        }
+        .social-links { display: flex; justify-content: center; gap: 15px; margin-bottom: 25px; }
+        .social-links a {
+            width: 40px; height: 40px; border: 1px solid var(--text-muted);
+            display: flex; align-items: center; justify-content: center;
+            color: var(--text-muted); text-decoration: none; transition: 0.3s;
+        }
+        .social-links a:hover { background: var(--text-main); color: var(--bg-body); }
+        html.blind-mode .social-links a:hover { background: #000; color: #fff; }
+
+        /* --- MOBILE --- */
         @media (max-width: 768px) {
-            header h1 { font-size: 3rem; }
-            .upcoming-wrapper { flex-direction: column; text-align: center; gap: 20px; }
-            .nav-links { display: none; } /* Simplified mobile nav */
+            .nav-menu { display: none; }
+            .event-body-wrapper { flex-direction: column; }
+            .event-thumb { width: 100%; height: 150px; }
+            .nav-btn span { display: none; } 
         }
     </style>
 </head>
 <body>
 
-    <canvas id="canvas"></canvas>
+    <div id="cursor-dot"></div>
+    <canvas id="engineering-canvas"></canvas>
 
     <nav>
-        <div class="nav-logo" onclick="window.location.href='index.html'">
-            <img src="logo.png" alt="Logo">
-            <span>SAWAED</span>
-        </div>
-        <div class="nav-links">
+        <a href="index.html" class="logo" style="text-decoration: none; color: inherit;">
+            <img src="logo.png" alt="Sawaed Logo">
+            <span></span>
+        </a>
+
+        <div class="nav-menu">
             <a href="index.html" class="nav-link">Home</a>
-            <a href="http://www.sawaed-om.org/join-us" class="btn-join">JOIN US</a>
+            <a href="http://www.sawaed-om.org/join-us" class="nav-link join-btn">Join Us</a>
         </div>
-        <div class="nav-toggles">
-            <button onclick="toggleTheme()"><i class="fas fa-moon"></i></button>
-            <button onclick="toggleBlind()"><i class="fas fa-eye"></i></button>
+
+        <div class="nav-controls">
+            <button class="nav-btn" onclick="toggleTheme()" id="themeBtn">
+                <i class="fas fa-moon"></i> <span>DARK</span>
+            </button>
+            <button class="nav-btn" onclick="toggleBlindMode()" id="blindBtn">
+                <i class="fas fa-eye"></i> <span>CONTRAST</span>
+            </button>
         </div>
     </nav>
 
-    <header>
-        <p class="mono">Engineering Timeline</p>
-        <h1>Events Log</h1>
+    <header class="page-hero">
+        <h1 class="gsap-hero">Events Log</h1>
+        <p class="gsap-hero">Timeline of Engineering Activities</p>
     </header>
 
-    <div class="container">
-        
-        <div class="section-title">
-            <i class="fas fa-history" style="color:var(--muted); font-size:1.5rem;"></i>
-            <h2>Recent Activity</h2>
+    <section id="upcoming">
+        <div class="section-divider">
+            <i class="fas fa-calendar-alt"></i>
+            <h2>Upcoming Events</h2>
         </div>
 
-        <div class="events-grid">
-            
-            <div class="card">
-                <div class="card-header">
-                    <span class="mono">26 OCT 2025</span>
-                    <span class="tag">VIRTUAL</span>
+        <div class="upcoming-feature gsap-reveal">
+            <div class="upcoming-badge">REGISTRATION OPEN</div>
+            <div class="upcoming-content">
+                <h3>Spring Tech: Renewables</h3>
+                <div class="event-meta" style="justify-content: center; font-size: 0.9rem; margin-bottom: 20px;">
+                    <span><i class="far fa-calendar"></i> 15 Feb 2026</span>
+                    <span><i class="far fa-clock"></i> 14:00 GMT</span>
+                    <span><i class="fas fa-map-marker-alt"></i> Manchester</span>
                 </div>
-                <div class="card-body">
-                    <div class="thumb">
-                        <img src="home_photos/event_icon_01.jpg" alt="Event 1" onerror="this.parentElement.classList.add('error')">
+                <p>Join us for an intensive workshop on renewable energy integration in modern grids. Guest speakers from top industry firms will be presenting technical case studies.</p>
+                <a href="#" class="nav-link join-btn" style="display: inline-block;">REGISTER INTEREST</a>
+            </div>
+        </div>
+    </section>
+
+    <section id="past">
+        <div class="section-divider">
+            <i class="fas fa-history"></i>
+            <h2>Past Events</h2>
+        </div>
+
+        <div class="year-header">2026 ARCHIVE</div>
+        <div class="event-grid">
+            <div class="placeholder-card gsap-reveal">
+                <div>
+                    <i class="fas fa-archive" style="font-size: 2rem; margin-bottom: 10px;"></i><br>
+                    No archived events for 2026 yet.
+                </div>
+            </div>
+        </div>
+
+        <div class="year-header">2025 ARCHIVE</div>
+        <div class="event-grid">
+
+            <div class="event-card gsap-reveal">
+                <div class="event-header">
+                    <span class="event-date">26 Oct 2025</span>
+                    <span class="event-tag">Virtual</span>
+                </div>
+                <div class="event-body-wrapper">
+                    <div class="event-thumb">
+                        <img src="home_photos/event_icon_01.jpg" alt="Intro" onerror="this.parentElement.classList.add('error')">
                         <i class="fas fa-video"></i>
                     </div>
-                    <div class="info">
-                        <h3>Sawaed Intro</h3>
-                        <div class="meta mono">
-                            <span><i class="fas fa-clock"></i> 10:00</span>
+                    <div class="event-info">
+                        <h4 class="event-title">Sawaed Introduction</h4>
+                        <div class="event-meta">
+                            <span><i class="far fa-clock"></i> 10:00</span>
                             <span><i class="fas fa-map-marker-alt"></i> Teams</span>
                         </div>
-                        <p style="font-size: 0.85rem; color: var(--muted); margin:0;">
-                            Official introduction to the vision, mission, and pillars of the initiative.
-                        </p>
+                        <ul class="event-list">
+                            <li>Intro to Sawaed Vision</li>
+                            <li>Speaker: President</li>
+                        </ul>
                     </div>
                 </div>
-                <div class="card-footer">
-                    <a href="#" class="link-arrow mono">View Report &rarr;</a>
-                </div>
+                <div class="event-footer"><a href="#" class="event-link">View Report >></a></div>
             </div>
 
-            <div class="card">
-                <div class="card-header">
-                    <span class="mono">16 NOV 2025</span>
-                    <span class="tag">VIRTUAL</span>
+            <div class="event-card gsap-reveal">
+                <div class="event-header">
+                    <span class="event-date">16 Nov 2025</span>
+                    <span class="event-tag">Virtual</span>
                 </div>
-                <div class="card-body">
-                    <div class="thumb">
-                        <img src="home_photos/event_icon_02.jpg" alt="Event 2" onerror="this.parentElement.classList.add('error')">
+                <div class="event-body-wrapper">
+                    <div class="event-thumb">
+                        <img src="home_photos/event_icon_02.jpg" alt="Debate" onerror="this.parentElement.classList.add('error')">
                         <i class="fas fa-comments"></i>
                     </div>
-                    <div class="info">
-                        <h3>First Debate</h3>
-                        <div class="meta mono">
-                            <span><i class="fas fa-clock"></i> 18:00</span>
+                    <div class="event-info">
+                        <h4 class="event-title">The First Debate</h4>
+                        <div class="event-meta">
+                            <span><i class="far fa-clock"></i> 18:00</span>
                             <span><i class="fas fa-map-marker-alt"></i> Meet</span>
                         </div>
-                        <p style="font-size: 0.85rem; color: var(--muted); margin:0;">
-                            Critical thinking session: "The Future of AI in Civil Engineering."
-                        </p>
+                        <ul class="event-list">
+                            <li>Topic: "AI vs Engineers"</li>
+                            <li>Collab: UK Debate Soc</li>
+                        </ul>
                     </div>
                 </div>
-                <div class="card-footer">
-                    <a href="#" class="link-arrow mono">Watch Replay &rarr;</a>
-                </div>
+                <div class="event-footer"><a href="#" class="event-link">Watch Replay >></a></div>
             </div>
 
-            <div class="card">
-                <div class="card-header">
-                    <span class="mono">22 NOV 2025</span>
-                    <span class="tag">LIVE</span>
+            <div class="event-card gsap-reveal">
+                <div class="event-header">
+                    <span class="event-date">22 Nov 2025</span>
+                    <span class="event-tag">In Person</span>
                 </div>
-                <div class="card-body">
-                    <div class="thumb">
-                        <img src="home_photos/event_icon_03.jpg" alt="Event 3" onerror="this.parentElement.classList.add('error')">
+                <div class="event-body-wrapper">
+                    <div class="event-thumb">
+                        <img src="home_photos/event_icon_03.jpg" alt="National Day" onerror="this.parentElement.classList.add('error')">
                         <i class="fas fa-flag"></i>
                     </div>
-                    <div class="info">
-                        <h3>National Day</h3>
-                        <div class="meta mono">
-                            <span><i class="fas fa-clock"></i> All Day</span>
+                    <div class="event-info">
+                        <h4 class="event-title">National Omani Day</h4>
+                        <div class="event-meta">
+                            <span><i class="far fa-clock"></i> All Day</span>
                             <span><i class="fas fa-map-marker-alt"></i> UK</span>
                         </div>
-                        <p style="font-size: 0.85rem; color: var(--muted); margin:0;">
-                            Celebrating Omani heritage and engineering achievements in Liverpool.
-                        </p>
+                        <ul class="event-list">
+                            <li>Org: Omani Embassy</li>
+                            <li>Sustainability Chat</li>
+                        </ul>
                     </div>
                 </div>
-                <div class="card-footer">
-                    <a href="#" class="link-arrow mono">Gallery &rarr;</a>
-                </div>
+                <div class="event-footer"><a href="#" class="event-link">Gallery >></a></div>
             </div>
 
         </div>
+    </section>
 
-        <div class="section-title">
-            <i class="fas fa-calendar-alt" style="color:var(--red); font-size:1.5rem;"></i>
-            <h2>Upcoming</h2>
+    <footer>
+        <div class="logo" style="justify-content:center; margin-bottom:20px;">
+            <img src="logo.png" style="height:40px;">
         </div>
-
-        <div class="upcoming-wrapper">
-            <div class="date-box">
-                <span class="db-month mono">FEB</span>
-                <span class="db-day">15</span>
-            </div>
-            <div class="info">
-                <h3 style="font-size: 2rem; margin-bottom: 10px;">Spring Technical Workshop</h3>
-                <div class="meta mono" style="font-size: 0.9rem; margin-bottom: 15px;">
-                    <span><i class="fas fa-clock"></i> 14:00 GMT</span>
-                    <span style="margin-left: 20px;"><i class="fas fa-map-marker-alt"></i> Manchester University</span>
-                </div>
-                <p style="color: var(--muted); max-width: 600px;">
-                    Join us for an intensive workshop on renewable energy integration. 
-                    Guest speakers from top industry firms will be presenting.
-                </p>
-                <br>
-                <a href="#" class="btn-join">REGISTER INTEREST</a>
-            </div>
+        <div class="social-links">
+            <a href="#"><i class="fab fa-linkedin-in"></i></a>
+            <a href="#"><i class="fab fa-instagram"></i></a>
+            <a href="#"><i class="fas fa-envelope"></i></a>
         </div>
-
-    </div>
+        <p style="color:var(--text-muted); font-size:0.8rem; font-family: 'Roboto Mono';">&copy; 2026 Sawaed Initiative.</p>
+    </footer>
 
     <script>
-        /* --- LIGHTWEIGHT CANVAS (Copied from your working file) --- */
-        const canvas = document.getElementById('canvas');
+        /* 1. ANIMATIONS */
+        window.addEventListener('load', () => {
+            gsap.from(".gsap-hero", { y: 30, opacity: 0, duration: 1, stagger: 0.15, ease: "power3.out" });
+        });
+
+        gsap.registerPlugin(ScrollTrigger);
+        gsap.utils.toArray('.gsap-reveal').forEach(elem => {
+            gsap.from(elem, { scrollTrigger: { trigger: elem, start: "top 90%" }, y: 20, opacity: 0, duration: 0.8, ease: "power2.out" });
+        });
+
+        /* 2. THEME LOGIC */
+        const html = document.documentElement;
+        function toggleTheme() {
+            const current = html.getAttribute('data-theme');
+            const next = current === 'dark' ? 'light' : 'dark';
+            html.setAttribute('data-theme', next);
+            
+            const btn = document.getElementById('themeBtn');
+            if(next === 'dark') {
+                btn.classList.add('active');
+                btn.innerHTML = '<i class="fas fa-sun"></i> <span>LIGHT</span>';
+            } else {
+                btn.classList.remove('active');
+                btn.innerHTML = '<i class="fas fa-moon"></i> <span>DARK</span>';
+            }
+            updateCanvasColors();
+        }
+        function toggleBlindMode() {
+            html.classList.toggle('blind-mode');
+            document.getElementById('blindBtn').classList.toggle('active');
+            updateCanvasColors();
+        }
+
+        /* 3. LIGHTWEIGHT CANVAS (Performance Optimized) */
+        const canvas = document.getElementById('engineering-canvas');
         const ctx = canvas.getContext('2d');
         let w, h, nodes = [];
         const mouse = { x: null, y: null };
+        let nodeColor, lineColor, isCanvasHidden = false;
 
-        function resize() { w = canvas.width = window.innerWidth; h = canvas.height = window.innerHeight; init(); }
-        
-        function init() {
+        function updateCanvasColors() {
+            const styles = getComputedStyle(document.body);
+            nodeColor = styles.getPropertyValue('--canvas-node').trim();
+            lineColor = styles.getPropertyValue('--canvas-line').trim();
+            isCanvasHidden = styles.getPropertyValue('--canvas-display').trim() === 'none';
+        }
+
+        function resize() {
+            w = canvas.width = window.innerWidth;
+            h = canvas.height = window.innerHeight;
+            initNodes();
+        }
+
+        function initNodes() {
             nodes = [];
-            // Keep node count low for performance
-            const count = window.innerWidth < 768 ? 30 : 60;
+            // Keep node count reasonable
+            const count = window.innerWidth < 768 ? 40 : 80;
             for(let i=0; i<count; i++) {
                 nodes.push({
-                    x: Math.random() * w, y: Math.random() * h,
-                    vx: (Math.random() - 0.5), vy: (Math.random() - 0.5),
-                    size: Math.random() * 3 + 1
+                    x: Math.random() * w,
+                    y: Math.random() * h,
+                    vx: (Math.random() - 0.5),
+                    vy: (Math.random() - 0.5),
+                    size: Math.random() * 4 + 2
                 });
             }
         }
 
-        function animate() {
+        function animateCanvas() {
+            if(isCanvasHidden) { requestAnimationFrame(animateCanvas); return; }
+            
             ctx.clearRect(0, 0, w, h);
-            const style = getComputedStyle(document.body);
-            const nodeColor = style.getPropertyValue('--node-color').trim();
-            
-            // Only draw if not blind mode (optimization)
-            if (nodeColor === 'transparent') { requestAnimationFrame(animate); return; }
-
             ctx.fillStyle = nodeColor;
-            
+
             nodes.forEach(node => {
-                node.x += node.vx; node.y += node.vy;
+                node.x += node.vx; 
+                node.y += node.vy;
+                
                 if(node.x < 0 || node.x > w) node.vx *= -1;
                 if(node.y < 0 || node.y > h) node.vy *= -1;
-                
-                ctx.fillRect(node.x, node.y, node.size, node.size);
 
-                // Simple Distance Check (Mouse only)
+                ctx.fillRect(node.x - node.size/2, node.y - node.size/2, node.size, node.size);
+
+                // Check distance ONLY against mouse (O(N) complexity = Fast)
                 if (mouse.x) {
                     const dx = mouse.x - node.x;
                     const dy = mouse.y - node.y;
-                    if (dx*dx + dy*dy < 20000) {
-                        ctx.beginPath();
-                        ctx.strokeStyle = nodeColor;
-                        ctx.lineWidth = 0.5;
-                        ctx.moveTo(node.x, node.y);
-                        ctx.lineTo(mouse.x, mouse.y);
-                        ctx.stroke();
+                    const distSq = dx*dx + dy*dy; 
+                    if (distSq < 22500) { 
+                        ctx.beginPath(); 
+                        ctx.strokeStyle = lineColor; 
+                        ctx.lineWidth = 0.5; 
+                        ctx.moveTo(node.x, node.y); 
+                        ctx.lineTo(mouse.x, mouse.y); 
+                        ctx.stroke(); 
                     }
                 }
             });
-            requestAnimationFrame(animate);
+            requestAnimationFrame(animateCanvas);
         }
 
+        // Use Passive listeners for better scroll performance
+        window.addEventListener('mousemove', (e) => {
+            mouse.x = e.clientX;
+            mouse.y = e.clientY;
+            // Simple dot follow
+            const dot = document.getElementById('cursor-dot');
+            if(dot) { dot.style.transform = `translate(${e.clientX}px, ${e.clientY}px) translate(-50%, -50%)`; }
+        }, { passive: true });
+        
+        window.addEventListener('mouseleave', () => { mouse.x = null; mouse.y = null; });
         window.addEventListener('resize', resize);
-        window.addEventListener('mousemove', e => { mouse.x = e.clientX; mouse.y = e.clientY; }, {passive: true});
-        resize(); animate();
-
-        /* --- THEME TOGGLES --- */
-        function toggleTheme() {
-            const html = document.documentElement;
-            html.setAttribute('data-theme', html.getAttribute('data-theme') === 'dark' ? 'light' : 'dark');
-        }
-        function toggleBlind() {
-            document.documentElement.classList.toggle('blind-mode');
-        }
-
-        /* --- SIMPLE ANIMATION ON LOAD --- */
-        gsap.from("header", { opacity: 0, y: 30, duration: 1, ease: "power2.out" });
-        gsap.from(".card", { opacity: 0, y: 30, duration: 0.8, stagger: 0.2, delay: 0.3 });
-        gsap.from(".upcoming-wrapper", { opacity: 0, y: 30, duration: 0.8, delay: 0.8 });
+        
+        updateCanvasColors();
+        resize(); 
+        animateCanvas();
     </script>
 </body>
 </html>
