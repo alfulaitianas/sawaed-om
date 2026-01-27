@@ -90,15 +90,6 @@
         .tech-font { font-family: 'Roboto Mono', monospace; letter-spacing: -0.5px; }
 
         /* --- UI COMPONENTS --- */
-        #preloader {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background-color: var(--bg-body); z-index: 999999;
-            display: flex; flex-direction: column; justify-content: center; align-items: center;
-        }
-        .boot-text { font-family: 'Roboto Mono', monospace; margin-bottom: 15px; color: var(--text-main); font-size: 0.9rem; }
-        .boot-bar { width: 150px; height: 2px; background: var(--card-border); position: relative; overflow: hidden; }
-        .boot-progress { position: absolute; top: 0; left: 0; height: 100%; width: 0%; background: var(--primary-red); }
-
         #scroll-progress { position: fixed; top: 0; left: 0; height: 3px; width: 0%; background: var(--primary-red); z-index: 2000; }
 
         @media (hover: hover) {
@@ -189,7 +180,7 @@
         .tech-line.active { width: 100%; transition: width 1.5s ease-in-out; }
         .tech-line.active::after { opacity: 1; transition: opacity 0.5s 1.5s; }
 
-        .tabs { display: flex; justify-content: center; gap: 10px; margin-bottom: 50px; }
+        .tabs { display: flex; justify-content: center; gap: 10px; margin-bottom: 30px; }
         .tab-btn {
             background: transparent; border-bottom: 2px solid var(--card-border); border-top: none; border-left: none; border-right: none;
             padding: 10px 20px; cursor: pointer;
@@ -199,6 +190,26 @@
         .tab-btn.active { color: var(--primary-red); border-bottom-color: var(--primary-red); }
         html.blind-mode .tab-btn.active { color: #000; border-bottom-color: #000; }
         html[data-theme="dark"].blind-mode .tab-btn.active { color: #fff; border-bottom-color: #fff; }
+
+        /* FILTER STYLES */
+        .year-filter {
+            display: flex; justify-content: center; gap: 10px; margin-bottom: 30px;
+        }
+        .filter-pill {
+            background: transparent;
+            border: 1px solid var(--card-border);
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-family: 'Roboto Mono', monospace;
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .filter-pill:hover { border-color: var(--text-main); color: var(--text-main); }
+        .filter-pill.active { background: var(--text-main); color: var(--bg-body); border-color: var(--text-main); }
+        html.blind-mode .filter-pill.active { background: #000; color: #fff; border-color: #000; }
+        html[data-theme="dark"].blind-mode .filter-pill.active { background: #fff; color: #000; border-color: #fff; }
 
         .event-list { display: none; grid-template-columns: repeat(auto-fill, minmax(350px, 1fr)); gap: 30px; }
         .event-list.active { display: grid; }
@@ -273,26 +284,17 @@
 
     <div id="scroll-progress"></div>
 
-    <div id="preloader">
-        <div class="boot-text" id="boot-status">Loading Archive...</div>
-        <div class="boot-bar">
-            <div class="boot-progress"></div>
-        </div>
-    </div>
-
     <div id="cursor-dot"></div>
     <canvas id="engineering-canvas"></canvas>
 
     <nav>
-        <a href="index.html" class="logo hover-trigger magnetic">
+        <a href="https://www.sawaed-om.org" class="logo hover-trigger magnetic">
             <img src="logo.png">
             <span></span>
         </a>
 
         <div class="nav-menu">
-            <a href="index.html#about" class="nav-link hover-trigger">About</a>
-            <a href="index.html#pillars" class="nav-link hover-trigger">Pillars</a>
-            <a href="#" class="nav-link hover-trigger current-page">Events</a>
+            <a href="https://www.sawaed-om.org" class="nav-link hover-trigger">Home</a>
             <a href="https://www.sawaed-om.org/join-us" class="nav-link join-btn hover-trigger magnetic">Join Us</a>
         </div>
 
@@ -317,13 +319,44 @@
 
     <section>
         <div class="tabs gsap-reveal">
-            <button class="tab-btn active hover-trigger magnetic" onclick="openTab('past', this)">Past Events</button>
-            <button class="tab-btn hover-trigger magnetic" onclick="openTab('upcoming', this)">Upcoming Events</button>
+            <button class="tab-btn active hover-trigger magnetic" onclick="openTab('upcoming', this)">Upcoming Events</button>
+            <button class="tab-btn hover-trigger magnetic" onclick="openTab('past', this)">Past Events</button>
         </div>
 
-        <div id="past" class="event-list active">
-            
+        <div id="upcoming" class="event-list active">
             <div class="event-card hover-trigger gsap-reveal">
+                <div class="event-header">
+                    <span class="event-date">Q1 2026</span>
+                    <span class="event-tag">Coming Soon!</span>
+                </div>
+                <div class="event-content-wrapper">
+                    <div class="event-thumb-container">
+                        <div style="width:100%; height:100%; display:flex; align-items:center; justify-content:center; background:var(--card-border); color:var(--text-muted);">
+                            <i class="fas fa-calendar-alt fa-2x"></i>
+                        </div>
+                    </div>
+                    <div class="event-body">
+                        <h4 class="event-title">Coming Soon!</h4>
+                        <div class="event-meta">
+                            <span><i class="fas fa-tools"></i> Spring Workshop</span>
+                        </div>
+                        <p style="color: var(--text-muted); font-size: 0.9rem; line-height:1.6;">Spring Workshop</p>
+                    </div>
+                </div>
+                <div class="event-footer"><a href="#" class="event-link">Coming Soon!</a></div>
+            </div>
+        </div>
+
+        <div id="past" class="event-list">
+            
+            <div class="year-filter gsap-reveal" style="grid-column: 1 / -1;">
+                <button class="filter-pill active" onclick="filterYear('all', this)">All Years</button>
+                <button class="filter-pill" onclick="filterYear('2025', this)">2025</button>
+                <button class="filter-pill" onclick="filterYear('2026', this)">2026</button>
+                
+                </div>
+
+            <div class="event-card hover-trigger gsap-reveal" data-year="2025">
                 <div class="event-header">
                     <span class="event-date">26 Oct 2025</span>
                     <span class="event-tag">Virtual</span>
@@ -350,7 +383,7 @@
                 </div>
             </div>
 
-            <div class="event-card hover-trigger gsap-reveal">
+            <div class="event-card hover-trigger gsap-reveal" data-year="2025">
                 <div class="event-header">
                     <span class="event-date">16 Nov 2025</span>
                     <span class="event-tag">Virtual</span>
@@ -377,7 +410,7 @@
                 </div>
             </div>
 
-            <div class="event-card hover-trigger gsap-reveal">
+            <div class="event-card hover-trigger gsap-reveal" data-year="2025">
                 <div class="event-header">
                     <span class="event-date">22 Nov 2025</span>
                     <span class="event-tag">In person</span>
@@ -403,32 +436,8 @@
                     <a href="https://www.sawaed-om.org/events/03" class="event-link">View Details >></a>
                 </div>
             </div>
-            
-        </div>
 
-        <div id="upcoming" class="event-list">
-            <div class="event-card hover-trigger">
-                <div class="event-header">
-                    <span class="event-date">Q1 2026</span>
-                    <span class="event-tag">Planning</span>
-                </div>
-                <div class="event-content-wrapper">
-                    <div class="event-thumb-container">
-                        <div style="width:100%; height:100%; display:flex; align-items:center; justify-content:center; background:var(--card-border); color:var(--text-muted);">
-                            <i class="fas fa-calendar-alt fa-2x"></i>
-                        </div>
-                    </div>
-                    <div class="event-body">
-                        <h4 class="event-title">Spring Workshop</h4>
-                        <div class="event-meta">
-                            <span><i class="fas fa-tools"></i> TBD</span>
-                        </div>
-                        <p style="color: var(--text-muted); font-size: 0.9rem; line-height:1.6;">We are currently planning our next technical workshop series. Stay tuned for announcements.</p>
-                    </div>
-                </div>
-                <div class="event-footer"><a href="#" class="event-link">Coming Soon!</a></div>
             </div>
-        </div>
     </section>
 
     <footer>
@@ -444,19 +453,9 @@
     </footer>
 
     <script>
-        /* --- 1. BOOT SEQUENCE --- */
+        /* --- 1. BOOT SEQUENCE (IMMEDIATE) --- */
         window.addEventListener('load', () => {
-            const preloader = document.getElementById('preloader');
-            const bar = document.querySelector('.boot-progress');
-            const status = document.getElementById('boot-status');
-            
-            gsap.to(bar, { width: "100%", duration: 0.8, ease: "power2.inOut", onComplete: () => {
-                status.innerText = "Loaded";
-                gsap.to(preloader, { opacity: 0, duration: 0.5, delay: 0.2, onComplete: () => {
-                    preloader.style.display = "none";
-                    startPageAnimations();
-                }});
-            }});
+            startPageAnimations();
         });
 
         function startPageAnimations() {
@@ -499,19 +498,39 @@
             document.getElementById('blindBtn').classList.toggle('active');
         }
 
-        /* --- 4. TABS --- */
+        /* --- 4. TABS LOGIC --- */
         function openTab(id, btn) {
             document.querySelectorAll('.event-list').forEach(el => el.classList.remove('active'));
             document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
             document.getElementById(id).classList.add('active');
             btn.classList.add('active');
             
-            // Re-trigger animations for new tab content
+            // Re-trigger animations
             const newContent = document.getElementById(id).querySelectorAll('.event-card');
             gsap.fromTo(newContent, {y: 20, opacity: 0}, {y: 0, opacity: 1, duration: 0.4, stagger: 0.1});
         }
 
-        /* --- 5. ANIMATIONS & CANVAS --- */
+        /* --- 5. YEAR FILTER LOGIC (NEW) --- */
+        function filterYear(year, btn) {
+            // Update buttons active state
+            document.querySelectorAll('.filter-pill').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+
+            // Filter logic
+            const cards = document.querySelectorAll('#past .event-card');
+            cards.forEach(card => {
+                const cardYear = card.getAttribute('data-year');
+                if (year === 'all' || cardYear === year) {
+                    card.style.display = 'flex';
+                    // Optional: quick fade in
+                    gsap.fromTo(card, {opacity: 0}, {opacity: 1, duration: 0.3});
+                } else {
+                    card.style.display = 'none';
+                }
+            });
+        }
+
+        /* --- 6. ANIMATIONS & CANVAS --- */
         gsap.registerPlugin(ScrollTrigger);
         gsap.utils.toArray('.gsap-reveal').forEach(elem => {
             gsap.from(elem, { scrollTrigger: { trigger: elem, start: "top 90%" }, y: 30, opacity: 0, duration: 0.8, ease: "power3.out" });
@@ -532,7 +551,7 @@
 
         function initNodes() {
             nodes = [];
-            const count = window.innerWidth < 768 ? 30 : 60; // Slightly fewer nodes on sub-pages
+            const count = window.innerWidth < 768 ? 30 : 60; 
             for(let i=0; i<count; i++) {
                 nodes.push({
                     x: Math.random() * w,
@@ -617,7 +636,7 @@
         window.addEventListener('resize', resize);
         resize(); animateCanvas();
 
-        /* --- 6. INTERACTIONS --- */
+        /* --- 7. INTERACTIONS --- */
         document.querySelectorAll('.hover-trigger').forEach(el => {
             el.addEventListener('mouseenter', () => document.body.classList.add('hover-active'));
             el.addEventListener('mouseleave', () => document.body.classList.remove('hover-active'));
@@ -636,4 +655,3 @@
     </script>
 </body>
 </html>
-
